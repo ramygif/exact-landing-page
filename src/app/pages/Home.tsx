@@ -1,541 +1,241 @@
-import React, { useState } from "react";
-import { motion } from "motion/react";
-import {
-  MousePointer2,
-  Command,
-  CheckCircle2,
-  Zap,
-  Sparkles,
-  Monitor,
-  Check,
-  ArrowRight,
-} from "lucide-react";
-
-// ─── Waitlist logic ───────────────────────────────────────────────────────────
-
-const WAITLIST_BASE = 127;
-const WAITLIST_KEY = "exact_waitlist_emails";
-
-function getStoredEmails(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(WAITLIST_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function addEmail(email: string): boolean {
-  const emails = getStoredEmails();
-  if (emails.includes(email)) return false;
-  emails.push(email);
-  localStorage.setItem(WAITLIST_KEY, JSON.stringify(emails));
-  return true;
-}
-
-function getCount(): number {
-  return WAITLIST_BASE + getStoredEmails().length;
-}
-
-// ─── WaitlistForm ─────────────────────────────────────────────────────────────
-
-interface WaitlistFormProps {
-  large?: boolean;
-}
-
-function WaitlistForm({ large = false }: WaitlistFormProps) {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-
-    if (!emailRegex.test(email)) {
-      setError("Adresse email invalide.");
-      return;
-    }
-
-    addEmail(email);
-    setSubmitted(true);
-  }
-
-  if (submitted) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex items-center gap-3 py-4"
-      >
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600">
-          <Check className="w-4 h-4 text-white" />
-        </div>
-        <p className={`text-white/80 ${large ? "text-base" : "text-sm"}`}>
-          Vous êtes sur la liste. On vous contacte bientôt.
-        </p>
-      </motion.div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
-      <div className={`flex flex-col sm:flex-row gap-2 w-full ${large ? "max-w-lg" : "max-w-md"}`}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="votre@email.com"
-          className={`flex-1 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-blue-500 transition-colors ${
-            large ? "px-5 py-4 text-base" : "px-4 py-3 text-sm"
-          }`}
-          required
-        />
-        <button
-          type="submit"
-          className={`flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-all whitespace-nowrap ${
-            large ? "px-6 py-4 text-base" : "px-5 py-3 text-sm"
-          }`}
-        >
-          Rejoindre
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-      {error && (
-        <p className="text-red-400 text-xs">{error}</p>
-      )}
-    </form>
-  );
-}
-
-// ─── Home ─────────────────────────────────────────────────────────────────────
+import React from "react";
+import { Command, Sparkles, Zap, CheckCircle, Apple, TextCursor, ArrowRight } from "lucide-react";
+import { MacOsAnimation } from "../components/MacOsAnimation";
 
 export function Home() {
-  const count = getCount();
-
-  const avatarColors = [
-    "bg-blue-500",
-    "bg-purple-500",
-    "bg-pink-500",
-    "bg-emerald-500",
-    "bg-amber-500",
-  ];
-
+  // Le composant principal Home qui englobe toute la landing page
   return (
-    <div
-      className="min-h-screen overflow-x-hidden"
-      style={{
-        backgroundColor: "#0A0A0A",
-        color: "#FFFFFF",
-        fontFamily: "'Inter', sans-serif",
-      }}
-    >
-      {/* ── Navbar ──────────────────────────────────────────────────────────── */}
-      <nav
-        className="sticky top-0 z-50 w-full backdrop-blur-md"
-        style={{
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-          backgroundColor: "rgba(10,10,10,0.8)",
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span
-            style={{
-              fontFamily: "'Exat Test', sans-serif",
-              fontWeight: 800,
-              fontSize: "20px",
-              color: "#FFFFFF",
-            }}
-          >
-            exact
-          </span>
-          <button
-            className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl px-5 py-2.5 transition-all"
-            onClick={() => {
-              const el = document.getElementById("cta");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
+    // Conteneur principal : hauteur minimale d'écran, fond cassé (#F2F0EB), texte noir, 
+    // et personnalisation de la couleur de sélection du texte (fond bleu, texte blanc)
+    <div className="min-h-screen bg-[#F2F0EB] text-black font-sans selection:bg-[#0000FF] selection:text-white overflow-x-hidden">
+      
+      {/* Section Navigation (Navbar) */}
+      {/* Fixée en haut (fixed top-0), z-index élevé pour rester au-dessus, fond de même couleur et bordure noire style brutaliste */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F2F0EB] border-b-[2px] border-black">
+        {/* Conteneur pour aligner le logo à gauche et le bouton à droite avec un padding */}
+        <div className="w-full px-6 h-16 flex items-center justify-between">
+          
+          {/* Groupe logo : alignement vertical centré */}
+          <div className="flex items-center gap-2">
+            {/* Nom de l'app "exact" : typographie très grasse (font-black), espacement réduit, tout en minuscules */}
+            <span className="font-black tracking-tighter text-2xl lowercase">exact</span>
+          </div>
+          
+          {/* Bouton d'action secondaire (Liste d'attente) : texte petit, gras, majuscule, fond transparent mais bordure épaisse, effet hover inversant les couleurs */}
+          <button className="text-xs font-bold uppercase tracking-wider bg-transparent border-[2px] border-black text-black px-4 py-2 hover:bg-black hover:text-[#F2F0EB] transition-colors">
             Rejoindre la liste d'attente
           </button>
         </div>
       </nav>
 
-      {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center justify-center text-center px-6">
-        {/* Background orb */}
-        <div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center"
-          aria-hidden="true"
-        >
-          <div
-            className="w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
-            style={{ backgroundColor: "#2563EB" }}
-          />
-        </div>
+      {/* Section Hero (En-tête principale) */}
+      {/* Espacement en haut (pt-32) pour compenser la navbar fixe, padding en bas, bordure noire de séparation */}
+      <section className="pt-32 pb-24 px-6 border-b-[2px] border-black">
+        {/* Centrage du contenu avec une largeur maximale, disposition en colonne (flex-col) alignée à gauche */}
+        <div className="max-w-7xl mx-auto flex flex-col items-start">
+          
+          {/* Badge de statut ("Lancement prochain") : fond jaune vif, texte majuscule gras, bordure noire */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 border-[2px] border-black bg-[#FFD600] text-xs text-black font-bold uppercase tracking-wider mb-8">
+            {/* Icône d'éclair (Zap) fournie par lucide-react */}
+            <Zap className="w-3.5 h-3.5" />
+            Lancement prochain sur macOS
+          </div>
+          
+          {/* Titre principal (H1) : très grande taille (text-6xl à 7rem sur grand écran), graisse maximale, texte resserré et hauteur de ligne réduite (leading-[0.9]) */}
+          <h1 className="text-6xl md:text-8xl lg:text-[7rem] font-black tracking-tighter mb-8 leading-[0.9] text-black uppercase">
+            Écrivez parfaitement,<br className="hidden md:block" /> partout sur Mac.
+          </h1>
+          
+          {/* Conteneur flex pour organiser la sous-description et le formulaire en colonne */}
+          <div className="flex flex-col gap-12 w-full mt-8">
+            {/* Sous-conteneur limitant la largeur de la description pour faciliter la lecture */}
+            <div className="flex flex-col gap-8 w-full max-w-4xl">
+              
+              {/* Paragraphe d'accroche expliquant le produit, utilisant la police secondaire (font-secondary) */}
+              <p className="text-black text-xl md:text-2xl font-medium max-w-2xl leading-snug font-secondary">
+                L'application de barre de menus propulsée par l'IA qui corrige et reformule vos textes instantanément via un simple raccourci clavier.
+              </p>
 
-        <div className="relative z-10 flex flex-col items-center">
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm mb-8"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.08)",
-              borderColor: "rgba(255,255,255,0.1)",
-              color: "rgba(255,255,255,0.6)",
-            }}
-          >
-            <span>✦</span>
-            <span>Disponible sur macOS</span>
-          </motion.div>
-
-          {/* H1 */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-bold tracking-tight leading-tight text-white"
-            style={{ fontSize: "clamp(2.5rem, 8vw, 4.5rem)" }}
-          >
-            Écrivez parfaitement,
-            <br />
-            partout sur Mac.
-          </motion.h1>
-
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-6 max-w-xl mx-auto text-lg leading-relaxed"
-            style={{ color: "rgba(255,255,255,0.5)" }}
-          >
-            Exact corrige votre texte en un raccourci clavier. Sélectionnez,
-            appuyez sur ⌃Space, c'est parfait.
-          </motion.p>
-
-          {/* Waitlist form */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-8 w-full flex justify-center"
-          >
-            <WaitlistForm />
-          </motion.div>
-
-          {/* Social proof */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-6 flex items-center gap-3"
-          >
-            <div className="flex -space-x-2">
-              {avatarColors.map((color, i) => (
-                <div
-                  key={i}
-                  className={`w-7 h-7 rounded-full border-2 ${color}`}
-                  style={{ borderColor: "#0A0A0A" }}
-                />
-              ))}
+              {/* Conteneur du formulaire de capture d'email et de la preuve sociale */}
+              <div className="flex flex-col gap-4 w-full max-w-lg">
+                {/* Formulaire : disposition en colonne sur mobile, en ligne sur grand écran (sm:flex-row) */}
+                <form 
+                  className="flex flex-col sm:flex-row w-full gap-2"
+                  onSubmit={(e) => e.preventDefault()} // Empêche le rechargement de la page à la soumission
+                >
+                  {/* Champ de saisie d'email : bordure épaisse, fond blanc, texte majuscule, désactivation de l'anneau de focus par défaut (focus:ring-0) */}
+                  <input 
+                    type="email" 
+                    placeholder="VOTRE@EMAIL.COM" 
+                    className="w-full font-secondary bg-white border-[2px] border-black px-5 py-4 text-black placeholder:text-gray-400 focus:outline-none focus:ring-0 font-bold uppercase text-sm"
+                    required // Rend le champ obligatoire
+                  />
+                  {/* Bouton de soumission principal : fond noir, texte blanc, effet au survol (bleu) avec transition */}
+                  <button type="submit" className="w-full sm:w-auto whitespace-nowrap bg-black text-white px-8 py-4 font-bold uppercase text-sm hover:bg-[#0000FF] transition-colors flex items-center justify-center gap-2">
+                    Rejoindre <ArrowRight className="w-4 h-4" /> {/* Icône flèche droite */}
+                  </button>
+                </form>
+                
+                {/* Section de preuve sociale (Social Proof) : affiche le nombre de personnes en liste d'attente */}
+                <div className="flex items-center gap-3 text-sm font-medium">
+                  {/* Conteneur pour les avatars superposés (grâce à -space-x-2 qui crée un chevauchement négatif) */}
+                  <div className="flex -space-x-2 font-secondary">
+                    {/* Avatar 1 : fond jaune, initiales textuelles */}
+                    <div className="w-8 h-8 border-[2px] border-black bg-[#FFD600] flex items-center justify-center text-[10px] font-bold">AM</div>
+                    {/* Avatar 2 : fond orange, texte blanc */}
+                    <div className="w-8 h-8 border-[2px] border-black bg-[#FF4D00] flex items-center justify-center text-[10px] font-bold text-white">JB</div>
+                    {/* Avatar 3 : fond bleu, texte blanc */}
+                    <div className="w-8 h-8 border-[2px] border-black bg-[#0000FF] flex items-center justify-center text-[10px] font-bold text-white">SL</div>
+                  </div>
+                  {/* Texte d'accompagnement de la preuve sociale */}
+                  <span className="font-secondary">Rejoignez <strong className="font-sans">240+</strong> personnes en liste d'attente</span>
+                </div>
+              </div>
             </div>
-            <span className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Déjà {count} personnes en liste d'attente
-            </span>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* ── How it works ────────────────────────────────────────────────────── */}
-      <section className="py-32 px-6 text-center">
-        <div className="max-w-5xl mx-auto">
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-sm uppercase tracking-widest mb-4"
-            style={{ color: "rgba(255,255,255,0.4)" }}
-          >
-            Comment ça marche
-          </motion.p>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="font-bold text-white mb-16"
-            style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}
-          >
-            Trois étapes. Zéro effort.
-          </motion.h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                number: "01",
-                icon: <MousePointer2 className="w-6 h-6 text-white/60" />,
-                title: "Sélectionnez votre texte",
-                desc: "Sélectionnez n'importe quel texte dans n'importe quelle app Mac.",
-              },
-              {
-                number: "02",
-                icon: <Command className="w-6 h-6 text-white/60" />,
-                title: "Appuyez sur ⌃Space",
-                desc: "Le raccourci universel envoie votre texte à l'IA.",
-              },
-              {
-                number: "03",
-                icon: <CheckCircle2 className="w-6 h-6 text-white/60" />,
-                title: "Texte corrigé instantanément",
-                desc: "Exact remplace votre texte par la version corrigée en moins d'une seconde.",
-              },
-            ].map((step, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="rounded-2xl p-8 text-left"
-                style={{
-                  backgroundColor: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                <div
-                  className="font-bold mb-6"
-                  style={{
-                    fontSize: "3.5rem",
-                    color: "rgba(255,255,255,0.12)",
-                    lineHeight: 1,
-                  }}
-                >
-                  {step.number}
-                </div>
-                <div className="mb-4">{step.icon}</div>
-                <h3 className="text-white font-semibold text-lg mb-3">
-                  {step.title}
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
-                  {step.desc}
-                </p>
-              </motion.div>
-            ))}
+            {/* Zone de l'animation réaliste macOS (Mockup) */}
+            <div className="w-full mt-4">
+              {/* Import et affichage du composant gérant l'animation du faux bureau Mac */}
+              <MacOsAnimation />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Features ────────────────────────────────────────────────────────── */}
-      <section className="py-32 px-6">
-        <div className="max-w-5xl mx-auto">
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-sm uppercase tracking-widest mb-4 text-center"
-            style={{ color: "rgba(255,255,255,0.4)" }}
-          >
-            Pourquoi Exact ?
-          </motion.p>
+      {/* How it works */}
+      <section className="border-b-[2px] border-black bg-white">
+        <div className="grid md:grid-cols-3 divide-y-[2px] md:divide-y-0 md:divide-x-[2px] divide-black">
+          
+          {[
+            { 
+              icon: <TextCursor className="w-8 h-8" />, 
+              title: "Sélectionnez votre texte", 
+              desc: "Surlignez le texte que vous souhaitez corriger ou améliorer dans n'importe quelle application macOS.",
+              bg: "bg-[#FFD600]",
+              text: "text-black"
+            },
+            { 
+              icon: <Command className="w-8 h-8" />, 
+              title: "Appuyez sur le raccourci", 
+              desc: "Utilisez ⌘E (ou votre raccourci personnalisé) pour analyser instantanément le texte avec l'IA.",
+              bg: "bg-[#0000FF]",
+              text: "text-white"
+            },
+            { 
+              icon: <Zap className="w-8 h-8" />, 
+              title: "Texte corrigé", 
+              desc: "Le texte est automatiquement remplacé par la version parfaite. Vous pouvez continuer à écrire.",
+              bg: "bg-black",
+              text: "text-white"
+            }
+          ].map((step, i) => (
+            <div key={i} className={`p-10 ${step.bg} ${step.text} flex flex-col justify-between min-h-[320px]`}>
+               <div>
+                 <div className="font-black text-6xl opacity-50 mb-6 font-secondary">0{i+1}</div>
+                 <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4 leading-tight">{step.title}</h3>
+               </div>
+               <div>
+                 <div className="mb-6">{step.icon}</div>
+                 <p className="font-medium text-lg leading-snug font-secondary">{step.desc}</p>
+               </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="font-bold text-white mb-16 text-center"
-            style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}
-          >
-            Puissant. Simple. Natif.
-          </motion.h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Featured card */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="rounded-2xl p-8 md:row-span-2 flex flex-col justify-between"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(37,99,235,0.2) 0%, rgba(30,58,138,0.2) 100%)",
-                border: "1px solid rgba(37,99,235,0.2)",
-              }}
-            >
-              <div>
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-6"
-                  style={{ backgroundColor: "rgba(37,99,235,0.3)" }}
-                >
-                  <Zap className="w-6 h-6 text-blue-400" />
-                </div>
-                <h3 className="text-white font-semibold text-xl mb-3">
-                  Correction orthographique
-                </h3>
-                <p className="leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
-                  Corrige fautes d'orthographe, grammaire, ponctuation. En
-                  temps réel, sans quitter votre flux de travail.
-                </p>
-              </div>
-              <div
-                className="mt-10 rounded-xl p-4 text-sm font-mono"
-                style={{
-                  backgroundColor: "rgba(0,0,0,0.4)",
-                  color: "rgba(255,255,255,0.6)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <span style={{ color: "rgba(255,255,255,0.3)" }}>avant </span>
-                <span style={{ textDecoration: "line-through", color: "#ef4444" }}>
-                  bonjour comment va tu
-                </span>
-                <br />
-                <span style={{ color: "rgba(255,255,255,0.3)" }}>après </span>
-                <span style={{ color: "#4ade80" }}>Bonjour, comment vas-tu ?</span>
-              </div>
-            </motion.div>
-
-            {/* Card 2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="rounded-2xl p-8"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-6"
-                style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
-              >
-                <Sparkles className="w-6 h-6 text-white/60" />
-              </div>
-              <h3 className="text-white font-semibold text-xl mb-3">
-                Reformulation intelligente
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
-                Reformule vos phrases sans changer le sens. Ton professionnel,
-                concis, ou décontracté.
-              </p>
-            </motion.div>
-
-            {/* Card 3 */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="rounded-2xl p-8"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-6"
-                style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
-              >
-                <Monitor className="w-6 h-6 text-white/60" />
-              </div>
-              <h3 className="text-white font-semibold text-xl mb-3">
-                Fonctionne partout sur Mac
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
-                Mail, Notion, Slack, Chrome, n'importe quelle app. Exact
-                s'intègre à tout votre système.
-              </p>
-            </motion.div>
+      {/* Features */}
+      <section className="py-24 px-6 border-b-[2px] border-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16">
+            <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none mb-6">Conçu pour les<br/>puristes du Mac.</h2>
+            <p className="text-xl font-medium max-w-2xl font-secondary">Tout ce dont vous avez besoin pour des écrits impeccables, avec la rapidité et l'élégance que vous attendez d'une app native.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+             <div className="border-[2px] border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+               <div className="w-16 h-16 border-[2px] border-black bg-[#FFD600] flex items-center justify-center mb-8">
+                  <CheckCircle className="w-8 h-8" />
+               </div>
+               <h3 className="text-2xl font-black uppercase tracking-tight mb-4">Correction orthographique</h3>
+               <p className="font-medium text-lg leading-relaxed font-secondary">
+                 Éliminez les fautes de frappe, les erreurs de grammaire et la ponctuation douteuse avec une précision redoutable.
+               </p>
+             </div>
+             
+             <div className="border-[2px] border-black bg-[#0000FF] text-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+               <div className="w-16 h-16 border-[2px] border-white bg-black flex items-center justify-center mb-8">
+                  <Sparkles className="w-8 h-8 text-white" />
+               </div>
+               <h3 className="text-2xl font-black uppercase tracking-tight mb-4">Reformulation intelligente</h3>
+               <p className="font-medium text-lg leading-relaxed font-secondary">
+                 Adaptez le ton de vos messages (plus professionnel, plus direct, plus amical) en un seul clic ou prompt.
+               </p>
+             </div>
+             
+             <div className="border-[2px] border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+               <div className="w-16 h-16 border-[2px] border-black bg-[#FF4D00] flex items-center justify-center mb-8">
+                  <svg viewBox="0 0 384 512" fill="currentColor" className="w-8 h-8 text-white">
+                    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.3 48.6-.7 90.4-84.3 103.6-115.8-34.6-18.2-54.9-43.9-54.9-84.9zM207.6 11.5c31.3 0 62.7 21.6 76.6 59.4-26.4 1.4-64.8-11.1-84.1-34.6-21.7-26.8-23.9-59.5-21.3-64.8 10-1.2 27.6-2.4 28.8-2.4z"/>
+                  </svg>
+               </div>
+               <h3 className="text-2xl font-black uppercase tracking-tight mb-4">Fonctionne partout</h3>
+               <p className="font-medium text-lg leading-relaxed font-secondary">
+                 Mail, Slack, Messages, Safari, Word... Exact s'intègre nativement à toutes vos applications macOS.
+               </p>
+             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Waitlist CTA ─────────────────────────────────────────────────────── */}
-      <section id="cta" className="py-32 px-6 text-center relative">
-        {/* Blue glow */}
-        <div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center"
-          aria-hidden="true"
-        >
-          <div
-            className="w-[500px] h-[300px] rounded-full blur-3xl"
-            style={{ backgroundColor: "rgba(37,99,235,0.15)" }}
-          />
-        </div>
+      {/* Waitlist CTA Section */}
+      <section className="bg-[#FF4D00] text-white border-b-[2px] border-white">
+        <div className="max-w-7xl mx-auto px-6 py-32 flex flex-col md:flex-row items-center justify-between gap-12">
+          
+          <div className="flex-1">
+            <h2 className="text-6xl md:text-[8rem] font-black uppercase tracking-tighter leading-[0.85] mb-8">
+              Soyez<br/>parmi les<br/>premiers.
+            </h2>
+            <p className="text-xl md:text-2xl font-bold max-w-lg mb-12 font-secondary uppercase">
+              REJOIGNEZ LA LISTE D'ATTENTE POUR OBTENIR UN ACCÈS ANTICIPÉ ET UN TARIF PRÉFÉRENTIEL LORS DU LANCEMENT.
+            </p>
+            
+            <form 
+              className="flex flex-col sm:flex-row w-full max-w-xl gap-2"
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <input 
+                type="email" 
+                placeholder="VOTRE@EMAIL.COM" 
+                className="w-full bg-white text-black border-[2px] border-black px-6 py-5 focus:outline-none font-bold uppercase text-lg placeholder:text-gray-400 font-secondary"
+                required
+              />
+              <button type="submit" className="w-full sm:w-auto bg-black text-white px-10 py-5 font-black uppercase text-lg hover:bg-[#0000FF] transition-colors whitespace-nowrap border-[2px] border-black">
+                S'inscrire
+              </button>
+            </form>
+          </div>
 
-        <div className="relative z-10 max-w-2xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="font-bold text-white mb-4"
-            style={{ fontSize: "clamp(2rem, 6vw, 3.5rem)" }}
-          >
-            Soyez parmi les premiers.
-          </motion.h2>
+          <div className="hidden md:flex justify-end items-center">
+            <ArrowRight className="w-64 h-64 text-white" />
+          </div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-10 text-base"
-            style={{ color: "rgba(255,255,255,0.45)" }}
-          >
-            Accès anticipé gratuit. Pas de spam. Désabonnement en un clic.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex justify-center"
-          >
-            <WaitlistForm large />
-          </motion.div>
         </div>
       </section>
 
-      {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer
-        className="py-8 px-6"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
-      >
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>
-            © 2026 getexact.app
-          </span>
-          <div className="flex gap-6">
-            <a
-              href="#"
-              className="text-sm transition-colors hover:text-white"
-              style={{ color: "rgba(255,255,255,0.3)" }}
-            >
-              Confidentialité
-            </a>
-            <a
-              href="#"
-              className="text-sm transition-colors hover:text-white"
-              style={{ color: "rgba(255,255,255,0.3)" }}
-            >
-              CGU
-            </a>
+      {/* Footer */}
+      <footer className="bg-[#FF4D00] text-white py-8 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-sm font-bold uppercase tracking-wider font-secondary">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            <span>© 2026 GETEXACT.APP. TOUS DROITS RÉSERVÉS.</span>
+          </div>
+          <div className="flex gap-8">
+            <a href="#" className="hover:text-black transition-colors">Confidentialité</a>
+            <a href="#" className="hover:text-black transition-colors">CGU</a>
+            <a href="#" className="hover:text-black transition-colors">Contact</a>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-
-export default Home;
