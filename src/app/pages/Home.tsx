@@ -1,6 +1,7 @@
 import React from "react";
 import { Command, Sparkles, Zap, CheckCircle, Apple, TextCursor, ArrowRight } from "lucide-react";
 import { MacOsAnimation } from "../components/MacOsAnimation";
+import { WaitlistForm } from "../components/WaitlistForm";
 
 export function Home() {
   // Le composant principal Home qui englobe toute la landing page
@@ -58,24 +59,8 @@ export function Home() {
 
               {/* Conteneur du formulaire de capture d'email et de la preuve sociale */}
               <div className="flex flex-col gap-4 w-full max-w-lg">
-                {/* Formulaire : disposition en colonne sur mobile, en ligne sur grand écran (sm:flex-row) */}
-                <form 
-                  className="flex flex-col sm:flex-row w-full gap-2"
-                  onSubmit={(e) => e.preventDefault()} // Empêche le rechargement de la page à la soumission
-                >
-                  {/* Champ de saisie d'email : bordure épaisse, fond blanc, texte majuscule, désactivation de l'anneau de focus par défaut (focus:ring-0) */}
-                  <input 
-                    type="email" 
-                    placeholder="VOTRE@EMAIL.COM" 
-                    className="w-full font-secondary bg-white border-[2px] border-black px-5 py-4 text-black placeholder:text-gray-400 focus:outline-none focus:ring-0 font-bold uppercase text-sm"
-                    required // Rend le champ obligatoire
-                  />
-                  {/* Bouton de soumission principal : fond noir, texte blanc, effet au survol (bleu) avec transition */}
-                  <button type="submit" className="w-full sm:w-auto whitespace-nowrap bg-black text-white px-8 py-4 font-bold uppercase text-sm hover:bg-[#0000FF] transition-colors flex items-center justify-center gap-2">
-                    Rejoindre <ArrowRight className="w-4 h-4" /> {/* Icône flèche droite */}
-                  </button>
-                </form>
-                
+                <WaitlistForm variant="hero" />
+
                 {/* Section de preuve sociale (Social Proof) : affiche le nombre de personnes en liste d'attente */}
                 <div className="flex items-center gap-3 text-sm font-medium">
                   {/* Conteneur pour les avatars superposés (grâce à -space-x-2 qui crée un chevauchement négatif) */}
@@ -199,20 +184,7 @@ export function Home() {
               REJOIGNEZ LA LISTE D'ATTENTE POUR OBTENIR UN ACCÈS ANTICIPÉ ET UN TARIF PRÉFÉRENTIEL LORS DU LANCEMENT.
             </p>
             
-            <form 
-              className="flex flex-col sm:flex-row w-full max-w-xl gap-2"
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <input 
-                type="email" 
-                placeholder="VOTRE@EMAIL.COM" 
-                className="w-full bg-white text-black border-[2px] border-black px-6 py-5 focus:outline-none font-bold uppercase text-lg placeholder:text-gray-400 font-secondary"
-                required
-              />
-              <button type="submit" className="w-full sm:w-auto bg-black text-white px-10 py-5 font-black uppercase text-lg hover:bg-[#0000FF] transition-colors whitespace-nowrap border-[2px] border-black">
-                S'inscrire
-              </button>
-            </form>
+            <WaitlistForm variant="cta" />
           </div>
 
           <div className="hidden md:flex justify-end items-center">
