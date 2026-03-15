@@ -174,7 +174,7 @@ export function Home() {
             {
               icon: <Command className="w-8 h-8" />,
               title: "Appuyez sur le raccourci",
-              desc: "Utilisez ⌘E (ou votre raccourci personnalisé) pour analyser instantanément le texte avec l'IA.",
+              desc: "Utilisez ⌃Espace (ou votre raccourci personnalisé) pour analyser instantanément le texte avec l'IA.",
               bg: "bg-[#0000FF]",
               text: "text-white"
             },

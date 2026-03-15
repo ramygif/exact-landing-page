@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Command } from "lucide-react";
+
 import { motion, AnimatePresence } from "motion/react";
 
 const MacCursor = () => (
@@ -226,7 +226,7 @@ export function MacOsAnimation() {
                         className="absolute left-1/2 -translate-x-1/2 -bottom-16 bg-black/80 backdrop-blur-xl text-white/90 text-sm font-medium p-3 rounded-xl shadow-2xl flex items-center gap-4 whitespace-nowrap z-50 border border-white/20"
                       >
                         <div className="flex items-center gap-2 opacity-90 pl-1">
-                          <Command className="w-4 h-4 text-blue-400" />
+                          <span className="text-blue-400 text-xs font-bold">⌃</span>
                           <span className="tracking-wide">Correction IA</span>
                         </div>
                         <div className="flex gap-2 items-center">
@@ -244,7 +244,7 @@ export function MacOsAnimation() {
                             transition={{ duration: 0.25, delay: 0.5, times: [0, 0.5, 1], ease: "easeInOut" }}
                             className="bg-white text-gray-800 border border-gray-200 rounded-[6px] px-2 py-1 text-[14px] font-sans flex items-center justify-center min-w-[32px] will-change-transform"
                           >
-                            ⌘
+                            ⌃
                           </motion.span>
                           <motion.span
                             initial={{ y: 0, scale: 1, boxShadow: "0px 3px 0px #a1a1aa" }}
