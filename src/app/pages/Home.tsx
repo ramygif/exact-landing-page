@@ -1,86 +1,155 @@
-import React from "react";
-import { Command, Sparkles, Zap, CheckCircle, Apple, TextCursor, ArrowRight } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Command, Sparkles, Zap, CheckCircle, TextCursor, ArrowRight, Loader2, Video, Bot, Layers } from "lucide-react";
 import { MacOsAnimation } from "../components/MacOsAnimation";
-import { WaitlistForm } from "../components/WaitlistForm";
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function subscribeToBrevo(email: string): Promise<{ ok: boolean; message?: string }> {
+  try {
+    const res = await fetch("https://api.brevo.com/v3/contacts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": import.meta.env.VITE_BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        email,
+        listIds: [Number(import.meta.env.VITE_BREVO_LIST_ID)],
+        updateEnabled: true,
+      }),
+    });
+
+    if (res.ok || res.status === 204) return { ok: true };
+
+    const data = await res.json().catch(() => null);
+    if (data?.code === "duplicate_parameter") return { ok: true };
+
+    return { ok: false, message: data?.message || "Une erreur est survenue." };
+  } catch {
+    return { ok: false, message: "Erreur réseau. Vérifiez votre connexion." };
+  }
+}
 
 export function Home() {
-  // Le composant principal Home qui englobe toute la landing page
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const [heroEmail, setHeroEmail] = useState("");
+  const [ctaEmail, setCtaEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [error, setError] = useState("");
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scrollToCTA = () => {
+    ctaRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSubscribe = async (e: React.FormEvent, email: string) => {
+    e.preventDefault();
+    if (isSubscribed) return;
+    setError("");
+
+    if (!emailRegex.test(email)) {
+      setError("Adresse email invalide.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const result = await subscribeToBrevo(email);
+    setIsSubmitting(false);
+
+    if (result.ok) {
+      setIsSubscribed(true);
+    } else {
+      setError(result.message || "Une erreur est survenue.");
+    }
+  };
+
   return (
-    // Conteneur principal : hauteur minimale d'écran, fond cassé (#F2F0EB), texte noir, 
-    // et personnalisation de la couleur de sélection du texte (fond bleu, texte blanc)
     <div className="min-h-screen bg-[#F2F0EB] text-black font-sans selection:bg-[#0000FF] selection:text-white overflow-x-hidden">
-      
-      {/* Section Navigation (Navbar) */}
-      {/* Fixée en haut (fixed top-0), z-index élevé pour rester au-dessus, fond de même couleur et bordure noire style brutaliste */}
+
+      {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F2F0EB] border-b-[2px] border-black">
-        {/* Conteneur pour aligner le logo à gauche et le bouton à droite avec un padding */}
         <div className="w-full px-6 h-16 flex items-center justify-between">
-          
-          {/* Groupe logo : alignement vertical centré */}
-          <div className="flex items-center gap-2">
-            {/* Nom de l'app "exact" : typographie très grasse (font-black), espacement réduit, tout en minuscules */}
+          <div className="flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity" onClick={scrollToTop}>
             <span className="font-black tracking-tighter text-2xl lowercase">exact</span>
           </div>
-          
-          {/* Bouton d'action secondaire (Liste d'attente) : texte petit, gras, majuscule, fond transparent mais bordure épaisse, effet hover inversant les couleurs */}
-          <button className="text-xs font-bold uppercase tracking-wider bg-transparent border-[2px] border-black text-black px-4 py-2 hover:bg-black hover:text-[#F2F0EB] transition-colors">
+          <button
+            onClick={scrollToCTA}
+            className="text-xs font-bold uppercase tracking-wider bg-transparent border-[2px] border-black text-black px-4 py-2 hover:bg-black hover:text-[#F2F0EB] transition-colors"
+          >
             Rejoindre la liste d'attente
           </button>
         </div>
       </nav>
 
-      {/* Section Hero (En-tête principale) */}
-      {/* Espacement en haut (pt-32) pour compenser la navbar fixe, padding en bas, bordure noire de séparation */}
+      {/* Hero Section */}
       <section className="pt-32 pb-24 px-6 border-b-[2px] border-black">
-        {/* Centrage du contenu avec une largeur maximale, disposition en colonne (flex-col) alignée à gauche */}
         <div className="max-w-7xl mx-auto flex flex-col items-start">
-          
-          {/* Badge de statut ("Lancement prochain") : fond jaune vif, texte majuscule gras, bordure noire */}
+
           <div className="inline-flex items-center gap-2 px-3 py-1 border-[2px] border-black bg-[#FFD600] text-xs text-black font-bold uppercase tracking-wider mb-8">
-            {/* Icône d'éclair (Zap) fournie par lucide-react */}
             <Zap className="w-3.5 h-3.5" />
             Lancement prochain sur macOS
           </div>
-          
-          {/* Titre principal (H1) : très grande taille (text-6xl à 7rem sur grand écran), graisse maximale, texte resserré et hauteur de ligne réduite (leading-[0.9]) */}
+
           <h1 className="text-6xl md:text-8xl lg:text-[7rem] font-black tracking-tighter mb-8 leading-[0.9] text-black uppercase">
             Écrivez parfaitement,<br className="hidden md:block" /> partout sur Mac.
           </h1>
-          
-          {/* Conteneur flex pour organiser la sous-description et le formulaire en colonne */}
+
           <div className="flex flex-col gap-12 w-full mt-8">
-            {/* Sous-conteneur limitant la largeur de la description pour faciliter la lecture */}
             <div className="flex flex-col gap-8 w-full max-w-4xl">
-              
-              {/* Paragraphe d'accroche expliquant le produit, utilisant la police secondaire (font-secondary) */}
               <p className="text-black text-xl md:text-2xl font-medium max-w-2xl leading-snug font-secondary">
                 L'application de barre de menus propulsée par l'IA qui corrige et reformule vos textes instantanément via un simple raccourci clavier.
               </p>
 
-              {/* Conteneur du formulaire de capture d'email et de la preuve sociale */}
               <div className="flex flex-col gap-4 w-full max-w-lg">
-                <WaitlistForm variant="hero" />
+                <form
+                  className="flex flex-col sm:flex-row w-full gap-2"
+                  onSubmit={(e) => handleSubscribe(e, heroEmail)}
+                >
+                  <input
+                    type="email"
+                    value={heroEmail}
+                    onChange={(e) => setHeroEmail(e.target.value)}
+                    placeholder="VOTRE@EMAIL.COM"
+                    className="w-full font-secondary bg-white border-[2px] border-black px-5 py-4 text-black placeholder:text-gray-400 focus:outline-none focus:ring-0 font-bold uppercase text-sm disabled:opacity-50"
+                    required
+                    disabled={isSubmitting || isSubscribed}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || isSubscribed}
+                    className={`w-full sm:w-auto whitespace-nowrap px-8 py-4 font-bold uppercase text-sm transition-all duration-300 flex items-center justify-center gap-2 border-[2px] border-black
+                      ${isSubscribed
+                        ? "bg-[#00FF00] text-black hover:bg-[#00FF00] cursor-default"
+                        : "bg-black text-white hover:bg-[#0000FF] cursor-pointer"
+                      }`}
+                  >
+                    {isSubmitting ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> En cours</>
+                    ) : isSubscribed ? (
+                      <><CheckCircle className="w-4 h-4" /> Inscrit !</>
+                    ) : (
+                      <>Rejoindre <ArrowRight className="w-4 h-4" /></>
+                    )}
+                  </button>
+                </form>
+                {error && <p className="text-red-600 text-sm font-bold">{error}</p>}
 
-                {/* Section de preuve sociale (Social Proof) : affiche le nombre de personnes en liste d'attente */}
                 <div className="flex items-center gap-3 text-sm font-medium">
-                  {/* Conteneur pour les avatars superposés (grâce à -space-x-2 qui crée un chevauchement négatif) */}
                   <div className="flex -space-x-2 font-secondary">
-                    {/* Avatar 1 : fond jaune, initiales textuelles */}
                     <div className="w-8 h-8 border-[2px] border-black bg-[#FFD600] flex items-center justify-center text-[10px] font-bold">AM</div>
-                    {/* Avatar 2 : fond orange, texte blanc */}
                     <div className="w-8 h-8 border-[2px] border-black bg-[#FF4D00] flex items-center justify-center text-[10px] font-bold text-white">JB</div>
-                    {/* Avatar 3 : fond bleu, texte blanc */}
                     <div className="w-8 h-8 border-[2px] border-black bg-[#0000FF] flex items-center justify-center text-[10px] font-bold text-white">SL</div>
                   </div>
-                  {/* Texte d'accompagnement de la preuve sociale */}
                   <span className="font-secondary">Rejoignez <strong className="font-sans">240+</strong> personnes en liste d'attente</span>
                 </div>
               </div>
             </div>
 
-            {/* Zone de l'animation réaliste macOS (Mockup) */}
             <div className="w-full mt-4">
-              {/* Import et affichage du composant gérant l'animation du faux bureau Mac */}
               <MacOsAnimation />
             </div>
           </div>
@@ -90,25 +159,25 @@ export function Home() {
       {/* How it works */}
       <section className="border-b-[2px] border-black bg-white">
         <div className="grid md:grid-cols-3 divide-y-[2px] md:divide-y-0 md:divide-x-[2px] divide-black">
-          
+
           {[
-            { 
-              icon: <TextCursor className="w-8 h-8" />, 
-              title: "Sélectionnez votre texte", 
+            {
+              icon: <TextCursor className="w-8 h-8" />,
+              title: "Sélectionnez votre texte",
               desc: "Surlignez le texte que vous souhaitez corriger ou améliorer dans n'importe quelle application macOS.",
               bg: "bg-[#FFD600]",
               text: "text-black"
             },
-            { 
-              icon: <Command className="w-8 h-8" />, 
-              title: "Appuyez sur le raccourci", 
+            {
+              icon: <Command className="w-8 h-8" />,
+              title: "Appuyez sur le raccourci",
               desc: "Utilisez ⌘E (ou votre raccourci personnalisé) pour analyser instantanément le texte avec l'IA.",
               bg: "bg-[#0000FF]",
               text: "text-white"
             },
-            { 
-              icon: <Zap className="w-8 h-8" />, 
-              title: "Texte corrigé", 
+            {
+              icon: <Zap className="w-8 h-8" />,
+              title: "Texte corrigé",
               desc: "Le texte est automatiquement remplacé par la version parfaite. Vous pouvez continuer à écrire.",
               bg: "bg-black",
               text: "text-white"
@@ -135,7 +204,7 @@ export function Home() {
             <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none mb-6">Conçu pour les<br/>puristes du Mac.</h2>
             <p className="text-xl font-medium max-w-2xl font-secondary">Tout ce dont vous avez besoin pour des écrits impeccables, avec la rapidité et l'élégance que vous attendez d'une app native.</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
              <div className="border-[2px] border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
                <div className="w-16 h-16 border-[2px] border-black bg-[#FFD600] flex items-center justify-center mb-8">
@@ -146,7 +215,7 @@ export function Home() {
                  Éliminez les fautes de frappe, les erreurs de grammaire et la ponctuation douteuse avec une précision redoutable.
                </p>
              </div>
-             
+
              <div className="border-[2px] border-black bg-[#0000FF] text-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
                <div className="w-16 h-16 border-[2px] border-white bg-black flex items-center justify-center mb-8">
                   <Sparkles className="w-8 h-8 text-white" />
@@ -156,11 +225,11 @@ export function Home() {
                  Adaptez le ton de vos messages (plus professionnel, plus direct, plus amical) en un seul clic ou prompt.
                </p>
              </div>
-             
+
              <div className="border-[2px] border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
                <div className="w-16 h-16 border-[2px] border-black bg-[#FF4D00] flex items-center justify-center mb-8">
-                  <svg viewBox="0 0 384 512" fill="currentColor" className="w-8 h-8 text-white">
-                    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.3 48.6-.7 90.4-84.3 103.6-115.8-34.6-18.2-54.9-43.9-54.9-84.9zM207.6 11.5c31.3 0 62.7 21.6 76.6 59.4-26.4 1.4-64.8-11.1-84.1-34.6-21.7-26.8-23.9-59.5-21.3-64.8 10-1.2 27.6-2.4 28.8-2.4z"/>
+                  <svg viewBox="0 0 30 30" fill="currentColor" className="w-8 h-8 text-white">
+                    <path d="M25.565,9.785c-0.123,0.077-3.051,1.702-3.051,5.305c0.138,4.109,3.695,5.55,3.756,5.55 c-0.061,0.077-0.537,1.963-1.947,3.94C23.204,26.283,21.962,28,20.076,28c-1.794,0-2.438-1.135-4.508-1.135 c-2.223,0-2.852,1.135-4.554,1.135c-1.886,0-3.22-1.809-4.4-3.496c-1.533-2.208-2.836-5.673-2.882-9 c-0.031-1.763,0.307-3.496,1.165-4.968c1.211-2.055,3.373-3.45,5.734-3.496c1.809-0.061,3.419,1.242,4.523,1.242 c1.058,0,3.036-1.242,5.274-1.242C21.394,7.041,23.97,7.332,25.565,9.785z M15.001,6.688c-0.322-1.61,0.567-3.22,1.395-4.247 c1.058-1.242,2.729-2.085,4.17-2.085c0.092,1.61-0.491,3.189-1.533,4.339C18.098,5.937,16.488,6.872,15.001,6.688z"></path>
                   </svg>
                </div>
                <h3 className="text-2xl font-black uppercase tracking-tight mb-4">Fonctionne partout</h3>
@@ -172,10 +241,71 @@ export function Home() {
         </div>
       </section>
 
+      {/* Roadmap / Vision */}
+      <section className="py-24 px-6 bg-[#E0E0E0] border-b-[2px] border-black overflow-hidden relative">
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(black 1px, transparent 1px), linear-gradient(90deg, black 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}
+        />
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="flex flex-col lg:flex-row gap-16 items-start">
+
+            <div className="lg:w-5/12">
+              <div className="inline-block px-4 py-1 bg-black text-white font-bold text-xs uppercase tracking-widest mb-6 border-[2px] border-black">
+                Roadmap
+              </div>
+              <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6 drop-shadow-[4px_4px_0_white]">
+                Ce n'est que<br/>le début.
+              </h2>
+              <p className="text-xl font-medium font-secondary leading-relaxed bg-white border-[2px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                Aujourd'hui, nous perfectionnons vos écrits. Demain, nous redéfinissons toute votre interaction avec macOS. La révolution Exact ne fait que commencer.
+              </p>
+            </div>
+
+            <div className="lg:w-7/12 grid sm:grid-cols-2 gap-6 w-full">
+              <div className="border-[2px] border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all">
+                <div className="w-12 h-12 bg-[#00FF00] border-[2px] border-black flex items-center justify-center mb-6">
+                  <Video className="w-6 h-6 text-black" />
+                </div>
+                <h3 className="text-xl font-black uppercase mb-3 leading-tight">Transcription<br/>Vidéo</h3>
+                <p className="font-secondary font-medium text-black/80">
+                  Convertissez l'audio de n'importe quelle vidéo ou réunion en texte parfait, formaté en temps réel.
+                </p>
+              </div>
+
+              <div className="border-[2px] border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all">
+                <div className="w-12 h-12 bg-[#FF4D00] border-[2px] border-black flex items-center justify-center mb-6">
+                  <Layers className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-black uppercase mb-3 leading-tight">Overlay<br/>macOS</h3>
+                <p className="font-secondary font-medium text-black/80">
+                  Une interface IA flottante, non intrusive et omniprésente, directement incrustée par-dessus vos apps.
+                </p>
+              </div>
+
+              <div className="border-[2px] border-black bg-black text-white p-6 shadow-[6px_6px_0px_0px_rgba(255,214,0,1)] sm:col-span-2 hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_rgba(255,214,0,1)] transition-all">
+                <div className="w-12 h-12 bg-[#FFD600] border-[2px] border-white flex items-center justify-center mb-6">
+                  <Bot className="w-6 h-6 text-black" />
+                </div>
+                <h3 className="text-2xl font-black uppercase mb-3 leading-tight text-[#FFD600]">Chatbot Contextuel</h3>
+                <p className="font-secondary font-medium text-white/90 max-w-xl">
+                  Posez des questions, générez du contenu et analysez votre écran via un assistant ultra-puissant qui comprend toujours votre contexte de travail.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* Waitlist CTA Section */}
-      <section className="bg-[#FF4D00] text-white border-b-[2px] border-white">
+      <section ref={ctaRef} className="bg-[#FF4D00] text-white border-b-[2px] border-white">
         <div className="max-w-7xl mx-auto px-6 py-32 flex flex-col md:flex-row items-center justify-between gap-12">
-          
+
           <div className="flex-1">
             <h2 className="text-6xl md:text-[8rem] font-black uppercase tracking-tighter leading-[0.85] mb-8">
               Soyez<br/>parmi les<br/>premiers.
@@ -183,8 +313,39 @@ export function Home() {
             <p className="text-xl md:text-2xl font-bold max-w-lg mb-12 font-secondary uppercase">
               REJOIGNEZ LA LISTE D'ATTENTE POUR OBTENIR UN ACCÈS ANTICIPÉ ET UN TARIF PRÉFÉRENTIEL LORS DU LANCEMENT.
             </p>
-            
-            <WaitlistForm variant="cta" />
+
+            <form
+              className="flex flex-col sm:flex-row w-full max-w-xl gap-2"
+              onSubmit={(e) => handleSubscribe(e, ctaEmail)}
+            >
+              <input
+                type="email"
+                value={ctaEmail}
+                onChange={(e) => setCtaEmail(e.target.value)}
+                placeholder="VOTRE@EMAIL.COM"
+                className="w-full bg-white text-black border-[2px] border-black px-6 py-5 focus:outline-none font-bold uppercase text-lg placeholder:text-gray-400 font-secondary disabled:opacity-50"
+                required
+                disabled={isSubmitting || isSubscribed}
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting || isSubscribed}
+                className={`w-full sm:w-auto px-10 py-5 font-black uppercase text-lg transition-all duration-300 whitespace-nowrap border-[2px] border-black flex items-center justify-center gap-2
+                  ${isSubscribed
+                    ? "bg-[#00FF00] text-black hover:bg-[#00FF00] cursor-default"
+                    : "bg-black text-white hover:bg-[#0000FF] cursor-pointer"
+                  }`}
+              >
+                {isSubmitting ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> ...</>
+                ) : isSubscribed ? (
+                  <><CheckCircle className="w-5 h-5" /> INSCRIT !</>
+                ) : (
+                  "S'inscrire"
+                )}
+              </button>
+            </form>
+            {error && <p className="text-yellow-200 text-sm font-bold mt-2">{error}</p>}
           </div>
 
           <div className="hidden md:flex justify-end items-center">

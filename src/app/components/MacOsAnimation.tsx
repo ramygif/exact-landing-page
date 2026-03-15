@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Apple, Sparkles, CheckCircle, Command } from "lucide-react";
+import { Command } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const MacCursor = () => (
@@ -10,76 +10,110 @@ const MacCursor = () => (
 
 export function MacOsAnimation() {
   const [phase, setPhase] = useState('IDLE');
-  const [wordCount, setWordCount] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
 
-  const originalWords = [
-    { t: "Je", e: false },
-    { t: " vous", e: false },
-    { t: " ecrit", e: true },
-    { t: " ce", e: false },
-    { t: " mail", e: false },
-    { t: " pour", e: false },
-    { t: " vous", e: false },
-    { t: " informé", e: true },
-    { t: " que", e: false },
-    { t: " je", e: false },
-    { t: " serait", e: true },
-    { t: " en", e: false },
-    { t: " retard", e: false },
-    { t: " aujourdui.", e: true },
+  const segments = [
+    { t: "Je vous ", e: false },
+    { t: "ecrit", e: true },
+    { t: " ce mail pour vous ", e: false },
+    { t: "informé", e: true },
+    { t: " que je ", e: false },
+    { t: "serait", e: true },
+    { t: " en retard ", e: false },
+    { t: "aujourdui.", e: true },
   ];
 
+  const rawText = segments.map(s => s.t).join('');
   const correctedText = "Je vous écris cet e-mail pour vous informer que je serai en retard aujourd'hui.";
 
-  // Animation cycle
+  // Scene 1: Natural Typing
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (phase === 'TYPING') {
+      if (charIndex < rawText.length) {
+        timeout = setTimeout(() => {
+          setCharIndex(c => c + 1);
+        }, 20 + Math.random() * 25); // Fast, natural typing speed
+      } else {
+        timeout = setTimeout(() => setPhase('DETECTING'), 500);
+      }
+    }
+    return () => clearTimeout(timeout);
+  }, [phase, charIndex]);
+
+  // Phase Sequencer
   useEffect(() => {
     let timer: NodeJS.Timeout;
     switch (phase) {
       case 'IDLE':
-        timer = setTimeout(() => {
-          setWordCount(0);
-          setPhase('TYPING');
-        }, 1000);
+        setCharIndex(0);
+        timer = setTimeout(() => setPhase('TYPING'), 800);
         break;
-      case 'TYPING':
-        if (wordCount < originalWords.length) {
-          timer = setTimeout(() => setWordCount(prev => prev + 1), 120);
-        } else {
-          timer = setTimeout(() => setPhase('SELECTING'), 1800);
-        }
+      case 'DETECTING': // Scene 2: Detection fade-in
+        timer = setTimeout(() => setPhase('SELECTING'), 1000);
         break;
-      case 'SELECTING':
-        timer = setTimeout(() => setPhase('SHORTCUT'), 1100);
+      case 'SELECTING': // Scene 3: Mouse drag selection
+        timer = setTimeout(() => setPhase('SHORTCUT'), 1800);
         break;
-      case 'SHORTCUT':
-        timer = setTimeout(() => setPhase('CORRECTED'), 1500);
+      case 'SHORTCUT': // Scene 4: Activation pulse
+        timer = setTimeout(() => setPhase('CORRECTING'), 1200);
         break;
-      case 'CORRECTED':
+      case 'CORRECTING': // Scene 5: Magic transition
+        timer = setTimeout(() => setPhase('DONE'), 1500);
+        break;
+      case 'DONE': // Scene 6: Result final
         timer = setTimeout(() => setPhase('IDLE'), 3500);
         break;
     }
     return () => clearTimeout(timer);
-  }, [phase, wordCount]);
+  }, [phase]);
 
-  const isTyping = phase === 'TYPING';
-  const isSelected = ['SELECTING', 'SHORTCUT'].includes(phase);
-  const showShortcut = phase === 'SHORTCUT';
-  const isCorrected = phase === 'CORRECTED';
-  const shouldZoom = ['TYPING', 'SELECTING', 'SHORTCUT'].includes(phase);
+  const shouldZoom = ['TYPING', 'DETECTING', 'SELECTING', 'SHORTCUT', 'CORRECTING'].includes(phase);
+
+  // Render Original text with error squiggles
+  const renderTextWithSquiggles = (keyPrefix: string) => {
+    let currentIndex = 0;
+    return segments.map((seg, i) => {
+      const segStart = currentIndex;
+      const segEnd = currentIndex + seg.t.length;
+      currentIndex = segEnd;
+      
+      const visibleLength = Math.max(0, Math.min(charIndex - segStart, seg.t.length));
+      const visibleText = seg.t.substring(0, visibleLength);
+
+      const showSquiggle = seg.e && ['DETECTING', 'SELECTING', 'SHORTCUT'].includes(phase);
+
+      return (
+        <span key={`${keyPrefix}-${i}`} className="relative inline-block whitespace-pre">
+          <span>{visibleText}</span>
+          {showSquiggle && visibleText === seg.t && (
+             <motion.span
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               transition={{ duration: 0.3 }}
+               className="absolute left-0 right-0 bottom-0 h-full underline decoration-red-500 decoration-wavy decoration-[1.5px] underline-offset-[3px] text-transparent pointer-events-none"
+             >
+               {visibleText}
+             </motion.span>
+          )}
+        </span>
+      );
+    });
+  };
 
   return (
     <div className="w-full rounded-xl overflow-hidden relative flex flex-col aspect-[16/10] lg:aspect-[21/9] ring-1 ring-black/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]">
-      {/* macOS Wallpaper (Vibrant Sonoma-like Gradient) */}
+      {/* macOS Wallpaper */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#FF7A00] via-[#FF004D] to-[#7000FF] opacity-90 z-0" />
       <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-[#00F0FF] rounded-full mix-blend-screen blur-[60px] opacity-70 z-0" />
       <div className="absolute bottom-[-10%] left-[-20%] w-[400px] h-[400px] bg-[#FFD600] rounded-full mix-blend-screen blur-[80px] opacity-60 z-0" />
 
-      {/* Fake macOS menu bar - Realistic style */}
+      {/* Menu Bar with real Apple SVG */}
       <div className="h-7 w-full bg-black/40 backdrop-blur-md border-b border-white/10 flex items-center px-4 justify-between text-[12px] font-[-apple-system,BlinkMacSystemFont,sans-serif] tracking-normal text-white z-20 shadow-sm relative">
         <div className="flex items-center gap-4">
-          <svg viewBox="0 0 384 512" fill="currentColor" className="w-3.5 h-3.5">
-              <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.3 48.6-.7 90.4-84.3 103.6-115.8-34.6-18.2-54.9-43.9-54.9-84.9zM207.6 11.5c31.3 0 62.7 21.6 76.6 59.4-26.4 1.4-64.8-11.1-84.1-34.6-21.7-26.8-23.9-59.5-21.3-64.8 10-1.2 27.6-2.4 28.8-2.4z"/>
-            </svg>
+          <svg viewBox="0 0 30 30" fill="currentColor" className="w-3.5 h-3.5">
+            <path d="M25.565,9.785c-0.123,0.077-3.051,1.702-3.051,5.305c0.138,4.109,3.695,5.55,3.756,5.55 c-0.061,0.077-0.537,1.963-1.947,3.94C23.204,26.283,21.962,28,20.076,28c-1.794,0-2.438-1.135-4.508-1.135 c-2.223,0-2.852,1.135-4.554,1.135c-1.886,0-3.22-1.809-4.4-3.496c-1.533-2.208-2.836-5.673-2.882-9 c-0.031-1.763,0.307-3.496,1.165-4.968c1.211-2.055,3.373-3.45,5.734-3.496c1.809-0.061,3.419,1.242,4.523,1.242 c1.058,0,3.036-1.242,5.274-1.242C21.394,7.041,23.97,7.332,25.565,9.785z M15.001,6.688c-0.322-1.61,0.567-3.22,1.395-4.247 c1.058-1.242,2.729-2.085,4.17-2.085c0.092,1.61-0.491,3.189-1.533,4.339C18.098,5.937,16.488,6.872,15.001,6.688z"></path>
+          </svg>
           <span className="font-bold">Mail</span>
           <span className="hidden sm:inline font-medium">Fichier</span>
           <span className="hidden sm:inline font-medium">Édition</span>
@@ -94,10 +128,9 @@ export function MacOsAnimation() {
         </div>
       </div>
 
-      {/* Workspace Area */}
+      {/* Workspace */}
       <div className="relative w-full h-full p-6 overflow-hidden flex flex-col items-center z-10 font-[-apple-system,BlinkMacSystemFont,sans-serif]">
         
-        {/* Fake App Window */}
         <motion.div 
           animate={{ 
             scale: shouldZoom ? 1.05 : 1,
@@ -130,88 +163,144 @@ export function MacOsAnimation() {
             <div className="relative text-[15px] leading-relaxed text-gray-800">
               Bonjour à tous,<br/><br/>
               
-              <span className="relative inline-block whitespace-pre-wrap">
-                {/* Selection Highlight Background */}
-                <motion.div
-                  initial={false}
-                  animate={{ 
-                    width: isSelected ? '100%' : '0%',
-                    opacity: isSelected ? 1 : 0
-                  }}
-                  transition={{ 
-                    width: { duration: 0.8, ease: "easeInOut" },
-                    opacity: { duration: 0.2 }
-                  }}
-                  className="absolute top-0 bottom-0 right-0 bg-blue-500 rounded-[2px] -z-0"
-                />
-
-                {/* Text Content */}
-                <span className={`relative z-10 transition-colors duration-200 ${isSelected ? 'text-white' : 'text-gray-800'}`}>
-                  {!isCorrected && originalWords.map((w, i) => (
-                    <motion.span 
-                      key={i}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: i < wordCount || !isTyping ? 1 : 0 }}
-                      className={
-                        w.e && !isSelected && wordCount > i 
-                          ? "underline decoration-red-500 decoration-wavy decoration-[1.5px] underline-offset-[3px]" 
-                          : ""
-                      }
-                    >
-                      {w.t}
-                    </motion.span>
-                  ))}
-                  {isCorrected && (
-                     <span>{correctedText}</span>
-                  )}
-                </span>
+              <div className="relative inline-grid text-left max-w-full">
                 
-                {/* Corrected Flash Highlight */}
-                {phase === 'CORRECTED' && (
-                  <motion.div
-                    initial={{ opacity: 0.6 }}
-                    animate={{ opacity: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="absolute inset-[-2px] bg-green-200 rounded-[2px] -z-0"
-                  />
+                {/* ORIGINAL TEXT LAYER */}
+                <motion.div 
+                  className="col-start-1 row-start-1 relative"
+                  animate={{ opacity: ['CORRECTING', 'DONE'].includes(phase) ? 0 : 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  {/* Text Container */}
+                  <span className="relative z-10 whitespace-pre-wrap text-gray-800 block">
+                    {renderTextWithSquiggles('base')}
+                    {/* Typing Cursor */}
+                    {phase === 'TYPING' && (
+                       <motion.span
+                         animate={{ opacity: [1, 0, 1] }}
+                         transition={{ repeat: Infinity, duration: 0.8 }}
+                         className="inline-block w-[2px] h-[1.1em] bg-black align-middle ml-[1px] -translate-y-[1px]"
+                       />
+                    )}
+
+                    {/* Selection Overlay (Progressive Color Change) */}
+                    <motion.span
+                      className="absolute inset-0 bg-blue-500 text-white rounded-[2px] overflow-hidden pointer-events-none"
+                      initial={{ clipPath: "inset(0% 100% 0% 0%)" }}
+                      animate={{
+                        clipPath: (phase === 'SELECTING' || phase === 'SHORTCUT') ? "inset(0% 0% 0% 0%)" : "inset(0% 100% 0% 0%)",
+                        opacity: phase === 'CORRECTING' ? 0 : 1
+                      }}
+                      transition={{ 
+                        clipPath: { duration: 1.1, delay: 0.35, ease: "easeInOut" },
+                        opacity: { duration: 0.3 }
+                      }}
+                    >
+                      {renderTextWithSquiggles('overlay')}
+                    </motion.span>
+                  </span>
+
+                  {/* Scene 3: Mouse cursor for Selection */}
+                  <AnimatePresence>
+                    {phase === 'SELECTING' && (
+                      <motion.div
+                        initial={{ left: '50%', top: '40px', opacity: 0 }}
+                        animate={{ left: ['50%', '-1%', '100%'], top: ['40px', '5px', '10px'], opacity: [0, 1, 1] }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 1.5, times: [0, 0.25, 1], ease: "easeInOut" }}
+                        className="absolute z-40 pointer-events-none drop-shadow-lg"
+                      >
+                        <MacCursor />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Scene 4: Shortcut Tooltip */}
+                  <AnimatePresence>
+                    {phase === 'SHORTCUT' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 15, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                        transition={{ duration: 0.4, type: "spring", bounce: 0.4 }}
+                        className="absolute left-1/2 -translate-x-1/2 -bottom-16 bg-black/80 backdrop-blur-xl text-white/90 text-sm font-medium p-3 rounded-xl shadow-2xl flex items-center gap-4 whitespace-nowrap z-50 border border-white/20"
+                      >
+                        <div className="flex items-center gap-2 opacity-90 pl-1">
+                          <Command className="w-4 h-4 text-blue-400" />
+                          <span className="tracking-wide">Correction IA</span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <motion.span
+                            initial={{ y: 0, scale: 1, boxShadow: "0px 3px 0px #a1a1aa" }}
+                            animate={{ 
+                              y: [0, 3, 0],
+                              scale: [1, 0.96, 1],
+                              boxShadow: [
+                                "0px 3px 0px #a1a1aa", 
+                                "0px 0px 0px #a1a1aa", 
+                                "0px 3px 0px #a1a1aa"
+                              ]
+                            }}
+                            transition={{ duration: 0.25, delay: 0.5, times: [0, 0.5, 1], ease: "easeInOut" }}
+                            className="bg-white text-gray-800 border border-gray-200 rounded-[6px] px-2 py-1 text-[14px] font-sans flex items-center justify-center min-w-[32px] will-change-transform"
+                          >
+                            ⌘
+                          </motion.span>
+                          <motion.span
+                            initial={{ y: 0, scale: 1, boxShadow: "0px 3px 0px #a1a1aa" }}
+                            animate={{ 
+                              y: [0, 3, 0],
+                              scale: [1, 0.96, 1],
+                              boxShadow: [
+                                "0px 3px 0px #a1a1aa", 
+                                "0px 0px 0px #a1a1aa", 
+                                "0px 3px 0px #a1a1aa"
+                              ]
+                            }}
+                            transition={{ duration: 0.25, delay: 0.55, times: [0, 0.5, 1], ease: "easeInOut" }}
+                            className="bg-white text-gray-800 border border-gray-200 rounded-[6px] px-3 py-1 text-[13px] font-sans font-semibold tracking-wide flex items-center justify-center min-w-[64px] will-change-transform"
+                          >
+                            Espace
+                          </motion.span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Scene 5: Magic Sweep Effect */}
+                  <AnimatePresence>
+                    {phase === 'CORRECTING' && (
+                      <motion.div
+                         initial={{ left: '0%', opacity: 0 }}
+                         animate={{ left: '100%', opacity: [0, 1, 1, 0] }}
+                         transition={{ duration: 0.8, times: [0, 0.1, 0.8, 1], ease: "easeOut" }}
+                         className="absolute top-[-5px] bottom-[-5px] w-[50px] bg-gradient-to-r from-transparent via-blue-200 to-transparent blur-[3px] z-30"
+                      />
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+
+                {/* CORRECTED TEXT LAYER */}
+                {['CORRECTING', 'DONE'].includes(phase) && (
+                  <motion.div 
+                    className="col-start-1 row-start-1 relative z-20 text-gray-800 whitespace-pre-wrap"
+                    initial={{ opacity: 0, filter: 'blur(4px)' }}
+                    animate={{ opacity: 1, filter: 'blur(0px)' }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    {correctedText}
+                    {/* Final Cursor */}
+                    {phase === 'DONE' && (
+                       <motion.span
+                         animate={{ opacity: [1, 0, 1] }}
+                         transition={{ repeat: Infinity, duration: 0.8 }}
+                         className="inline-block w-[2px] h-[1.1em] bg-black align-middle ml-[1px] -translate-y-[1px]"
+                       />
+                    )}
+                  </motion.div>
                 )}
                 
-                {/* Shortcut Tooltip */}
-                <AnimatePresence>
-                  {showShortcut && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="absolute left-1/2 -translate-x-1/2 -bottom-10 bg-black text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-xl flex items-center gap-1.5 whitespace-nowrap z-20 pointer-events-none"
-                    >
-                      <Command className="w-3.5 h-3.5" /> 
-                      <span className="flex gap-1 items-center">
-                        <kbd className="bg-white/20 px-1 rounded text-[10px]">⌃</kbd>
-                        <kbd className="bg-white/20 px-1 rounded text-[10px]">Espace</kbd>
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* macOS Cursor for Selection */}
-                <AnimatePresence>
-                  {phase === 'SELECTING' && (
-                    <motion.div
-                      initial={{ left: '100%', opacity: 0 }}
-                      animate={{ left: '0%', opacity: [0, 1, 1, 0] }}
-                      transition={{ 
-                        duration: 1, 
-                        times: [0, 0.1, 0.9, 1], // Fade in, hold, fade out
-                        ease: "easeInOut" 
-                      }}
-                      className="absolute top-1 z-30 pointer-events-none drop-shadow-md translate-y-[2px]"
-                    >
-                      <MacCursor />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </span>
+              </div>
               
               <br/><br/>Merci de votre compréhension.
             </div>
