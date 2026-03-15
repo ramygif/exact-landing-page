@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Command, Sparkles, Zap, CheckCircle, TextCursor, ArrowRight, Loader2, Video, Bot, Layers } from "lucide-react";
+import { Link } from "react-router";
 import { MacOsAnimation } from "../components/MacOsAnimation";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,6 +24,7 @@ export function Home() {
   const [ctaEmail, setCtaEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
 
   const scrollToTop = () => {
@@ -107,8 +109,8 @@ export function Home() {
                   />
                   <button
                     type="submit"
-                    disabled={isSubmitting || isSubscribed}
-                    className={`w-full sm:w-auto whitespace-nowrap px-8 py-4 font-bold uppercase text-sm transition-all duration-300 flex items-center justify-center gap-2 border-[2px] border-black
+                    disabled={isSubmitting || isSubscribed || !consent}
+                    className={`w-full sm:w-auto whitespace-nowrap px-8 py-4 font-bold uppercase text-sm transition-all duration-300 flex items-center justify-center gap-2 border-[2px] border-black disabled:opacity-40 disabled:cursor-not-allowed
                       ${isSubscribed
                         ? "bg-[#00FF00] text-black hover:bg-[#00FF00] cursor-default"
                         : "bg-black text-white hover:bg-[#0000FF] cursor-pointer"
@@ -123,6 +125,20 @@ export function Home() {
                     )}
                   </button>
                 </form>
+                {!isSubscribed && (
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={consent}
+                      onChange={(e) => setConsent(e.target.checked)}
+                      className="mt-1 w-4 h-4 accent-black border-[2px] border-black flex-shrink-0"
+                    />
+                    <span className="text-xs font-secondary text-black/70 leading-snug">
+                      J'accepte que mon email soit utilisé pour recevoir des communications d'Exact.{" "}
+                      <Link to="/confidentialite" className="underline hover:text-[#0000FF]">Politique de confidentialité</Link>
+                    </span>
+                  </label>
+                )}
                 {error && <p className="text-red-600 text-sm font-bold">{error}</p>}
 
                 <div className="flex items-center gap-3 text-sm font-medium">
@@ -316,8 +332,8 @@ export function Home() {
               />
               <button
                 type="submit"
-                disabled={isSubmitting || isSubscribed}
-                className={`w-full sm:w-auto px-10 py-5 font-black uppercase text-lg transition-all duration-300 whitespace-nowrap border-[2px] border-black flex items-center justify-center gap-2
+                disabled={isSubmitting || isSubscribed || !consent}
+                className={`w-full sm:w-auto px-10 py-5 font-black uppercase text-lg transition-all duration-300 whitespace-nowrap border-[2px] border-black flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed
                   ${isSubscribed
                     ? "bg-[#00FF00] text-black hover:bg-[#00FF00] cursor-default"
                     : "bg-black text-white hover:bg-[#0000FF] cursor-pointer"
@@ -332,6 +348,20 @@ export function Home() {
                 )}
               </button>
             </form>
+            {!isSubscribed && (
+              <label className="flex items-start gap-3 cursor-pointer select-none mt-4">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-white border-[2px] border-white flex-shrink-0"
+                />
+                <span className="text-xs font-secondary text-white/70 leading-snug">
+                  J'accepte que mon email soit utilisé pour recevoir des communications d'Exact.{" "}
+                  <Link to="/confidentialite" className="underline hover:text-white">Politique de confidentialité</Link>
+                </span>
+              </label>
+            )}
             {error && <p className="text-yellow-200 text-sm font-bold mt-2">{error}</p>}
           </div>
 
@@ -350,9 +380,9 @@ export function Home() {
             <span>© 2026 GETEXACT.APP. TOUS DROITS RÉSERVÉS.</span>
           </div>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-black transition-colors">Confidentialité</a>
-            <a href="#" className="hover:text-black transition-colors">CGU</a>
-            <a href="#" className="hover:text-black transition-colors">Contact</a>
+            <Link to="/confidentialite" className="hover:text-black transition-colors">Confidentialité</Link>
+            <Link to="/cgu" className="hover:text-black transition-colors">CGU</Link>
+            <a href="mailto:ramydjebbi09@gmail.com" className="hover:text-black transition-colors">Contact</a>
           </div>
         </div>
       </footer>
