@@ -1,7 +1,11 @@
 interface Env {
   BREVO_API_KEY: string;
   BREVO_LIST_ID: string;
+  RATE_LIMIT: KVNamespace;
 }
+
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW = 3600; // 1 hour in seconds
 
 const ALLOWED_ORIGINS = [
   "https://getexact.app",
@@ -19,6 +23,10 @@ function getCorsHeaders(request: Request): Record<string, string> {
   };
 }
 
+function getClientIP(request: Request): string {
+  return request.headers.get("CF-Connecting-IP") || "unknown";
+}
+
 export const onRequestOptions: PagesFunction<Env> = async ({ request }) => {
   return new Response(null, { headers: getCorsHeaders(request) });
 };
@@ -26,6 +34,22 @@ export const onRequestOptions: PagesFunction<Env> = async ({ request }) => {
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const cors = getCorsHeaders(request);
   const headers = { "Content-Type": "application/json", ...cors };
+
+  // Rate limiting
+  const ip = getClientIP(request);
+  const kvKey = `rate:${ip}`;
+
+  const current = await env.RATE_LIMIT.get(kvKey);
+  const count = current ? parseInt(current, 10) : 0;
+
+  if (count >= RATE_LIMIT_MAX) {
+    return new Response(
+      JSON.stringify({ ok: false, message: "Trop de tentatives, réessaie plus tard." }),
+      { status: 429, headers: { ...headers, "Retry-After": String(RATE_LIMIT_WINDOW) } }
+    );
+  }
+
+  await env.RATE_LIMIT.put(kvKey, String(count + 1), { expirationTtl: RATE_LIMIT_WINDOW });
 
   if (!env.BREVO_API_KEY || !env.BREVO_LIST_ID) {
     return new Response(
@@ -46,7 +70,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     );
   }
 
-  // Validate email (server-side)
+  // Validate email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email) || email.length > 254) {
     return new Response(
@@ -80,7 +104,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
     }
 
-    // Never forward raw Brevo error messages to the client
     return new Response(
       JSON.stringify({ ok: false, message: "Inscription impossible. Réessayez plus tard." }),
       { status: 502, headers }
