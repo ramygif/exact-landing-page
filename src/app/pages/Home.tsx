@@ -4,27 +4,14 @@ import { MacOsAnimation } from "../components/MacOsAnimation";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-async function subscribeToBrevo(email: string): Promise<{ ok: boolean; message?: string }> {
+async function subscribe(email: string): Promise<{ ok: boolean; message?: string }> {
   try {
-    const res = await fetch("https://api.brevo.com/v3/contacts", {
+    const res = await fetch("/api/subscribe", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": import.meta.env.VITE_BREVO_API_KEY,
-      },
-      body: JSON.stringify({
-        email,
-        listIds: [Number(import.meta.env.VITE_BREVO_LIST_ID)],
-        updateEnabled: true,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
     });
-
-    if (res.ok || res.status === 204) return { ok: true };
-
-    const data = await res.json().catch(() => null);
-    if (data?.code === "duplicate_parameter") return { ok: true };
-
-    return { ok: false, message: data?.message || "Une erreur est survenue." };
+    return await res.json();
   } catch {
     return { ok: false, message: "Erreur réseau. Vérifiez votre connexion." };
   }
@@ -57,7 +44,7 @@ export function Home() {
     }
 
     setIsSubmitting(true);
-    const result = await subscribeToBrevo(email);
+    const result = await subscribe(email);
     setIsSubmitting(false);
 
     if (result.ok) {
