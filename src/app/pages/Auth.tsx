@@ -24,29 +24,43 @@ export function Auth() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.toLowerCase().trim(), password }),
       });
-      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Erreur de connexion");
+        let msg = "Erreur de connexion";
+        try { const d = await res.json(); msg = d.error || msg; } catch {}
+        setError(msg);
         setLoading(false);
         return;
       }
 
+      const data = await res.json();
       localStorage.setItem("exact_token", data.token);
       localStorage.setItem("exact_email", data.user.email);
 
       if (!isLogin && data.user.subscription_status !== "active") {
-        const checkoutRes = await fetch(`${API}/api/stripe/checkout`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${data.token}` },
-        });
-        const checkoutData = await checkoutRes.json();
-        if (checkoutData.url) { window.location.href = checkoutData.url; return; }
+        try {
+          const checkoutRes = await fetch(`${API}/api/stripe/checkout`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${data.token}`,
+            },
+          });
+          const checkoutData = await checkoutRes.json();
+          if (checkoutData.url) {
+            window.location.href = checkoutData.url;
+            return;
+          }
+        } catch {
+          // Checkout failed but account is created — go to dashboard
+          navigate("/dashboard");
+          return;
+        }
       }
 
       navigate("/dashboard");
-    } catch {
-      setError("Erreur reseau. Verifiez votre connexion.");
+    } catch (err) {
+      setError(`Erreur reseau: ${err instanceof Error ? err.message : "connexion impossible"}`);
     }
     setLoading(false);
   };
