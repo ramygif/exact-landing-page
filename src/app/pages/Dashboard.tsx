@@ -75,7 +75,7 @@ export function Dashboard() {
               </div>
               {isActive ? (
                 <div className="flex flex-col gap-3 w-full md:w-auto">
-                  <a href="/Exact-Installer.dmg" download className="bg-white text-black border-[2px] border-black px-6 py-4 font-black uppercase text-sm hover:bg-[#FFD600] transition-colors flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none"><Download className="w-5 h-5" /> Telecharger l'App</a>
+                  <a href="https://github.com/ramygif/exact-landing-page/releases/download/v1.0.0/Exact-Installer.dmg" download className="bg-white text-black border-[2px] border-black px-6 py-4 font-black uppercase text-sm hover:bg-[#FFD600] transition-colors flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none"><Download className="w-5 h-5" /> Telecharger l'App</a>
                   <button onClick={openPortal} disabled={portalLoading} className="bg-transparent text-white border-[2px] border-white px-6 py-3 font-bold uppercase text-xs hover:bg-white hover:text-black transition-colors flex items-center justify-center gap-2">
                     {portalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />} Gerer mon abonnement
                   </button>
