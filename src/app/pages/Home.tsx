@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { Command, Sparkles, Zap, CheckCircle, TextCursor, Download, User, Mic, Bot, Layers } from "lucide-react";
 import { useNavigate } from "react-router";
+import posthog from "posthog-js";
 import { MacOsAnimation } from "../components/MacOsAnimation";
 
 const API = "https://exact-api.ramydjebbi.workers.dev";
@@ -11,16 +12,46 @@ export function Home() {
   const pricingRef = useRef<HTMLElement>(null);
   const isLoggedIn = !!localStorage.getItem("exact_token");
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-  const scrollToPricing = () => pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Track sections viewed
+  const sectionsTracked = useRef(new Set<string>());
+  useEffect(() => {
+    const sections = document.querySelectorAll("section");
+    const names = ["hero", "how_it_works", "features", "pricing", "roadmap", "cta"];
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const idx = Array.from(sections).indexOf(entry.target as Element);
+          const name = names[idx] || `section_${idx}`;
+          if (!sectionsTracked.current.has(name)) {
+            sectionsTracked.current.add(name);
+            posthog.capture("section_viewed", { section: name });
+          }
+        }
+      });
+    }, { threshold: 0.3 });
+    sections.forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
+  }, []);
+
+  // Track time on page
+  useEffect(() => {
+    const start = Date.now();
+    return () => {
+      posthog.capture("time_on_page", { seconds: Math.round((Date.now() - start) / 1000) });
+    };
+  }, []);
+
+  const scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); posthog.capture("click_logo"); };
+  const scrollToPricing = () => { pricingRef.current?.scrollIntoView({ behavior: 'smooth' }); posthog.capture("click_voir_offre"); };
 
   const handleSubscribe = async () => {
+    posthog.capture("click_commencer", { logged_in: isLoggedIn });
     const token = localStorage.getItem("exact_token");
     if (!token) { navigate("/auth"); return; }
     try {
       const res = await fetch(`${API}/api/stripe/checkout`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) { posthog.capture("checkout_redirect"); window.location.href = data.url; }
     } catch { navigate("/auth"); }
   };
 
@@ -321,9 +352,10 @@ export function Home() {
             <span>© 2026 GETEXACT.APP. TOUS DROITS RÉSERVÉS.</span>
           </div>
           <div className="flex gap-8">
-            <a href="/confidentialite" className="hover:text-black transition-colors">Confidentialite</a>
-            <a href="/cgu" className="hover:text-black transition-colors">CGU</a>
-            <a href="mailto:contact@getexact.app" className="hover:text-black transition-colors">Contact</a>
+            <a href="/roadmap" onClick={() => posthog.capture("click_footer_link", { link: "roadmap" })} className="hover:text-black transition-colors">Roadmap</a>
+            <a href="/confidentialite" onClick={() => posthog.capture("click_footer_link", { link: "confidentialite" })} className="hover:text-black transition-colors">Confidentialite</a>
+            <a href="/cgu" onClick={() => posthog.capture("click_footer_link", { link: "cgu" })} className="hover:text-black transition-colors">CGU</a>
+            <a href="mailto:contact@getexact.app" onClick={() => posthog.capture("click_footer_link", { link: "contact" })} className="hover:text-black transition-colors">Contact</a>
           </div>
         </div>
       </footer>

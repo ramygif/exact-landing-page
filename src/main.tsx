@@ -9,6 +9,14 @@ posthog.init("phc_R4nkf2hrG0UlcEctqFZfJwjJwDuTrqxvTkhqqjt7HBq", {
   capture_pageview: true,
   capture_pageleave: true,
   autocapture: true,
+  capture_heatmaps: true,
+  capture_performance: true,
+  capture_dead_clicks: true,
+  session_recording: {
+    maskAllInputs: false,
+    maskInputOptions: { password: true },
+  },
+  enable_recording_console_log: true,
 });
 
 createRoot(document.getElementById("root")!).render(<App />);
