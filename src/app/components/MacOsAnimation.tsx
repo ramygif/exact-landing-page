@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import { Command } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const MacCursor = () => (
@@ -102,16 +102,16 @@ export function MacOsAnimation() {
   };
 
   return (
-    <div className="w-full rounded-xl overflow-hidden relative flex flex-col aspect-[16/10] lg:aspect-[21/9] ring-1 ring-black/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]">
+    <div className="w-full rounded-xl overflow-hidden relative flex flex-col h-[450px] sm:h-[500px] md:h-auto md:aspect-[16/10] lg:aspect-[21/9] ring-1 ring-black/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]">
       {/* macOS Wallpaper */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#FF7A00] via-[#FF004D] to-[#7000FF] opacity-90 z-0" />
       <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-[#00F0FF] rounded-full mix-blend-screen blur-[60px] opacity-70 z-0" />
       <div className="absolute bottom-[-10%] left-[-20%] w-[400px] h-[400px] bg-[#FFD600] rounded-full mix-blend-screen blur-[80px] opacity-60 z-0" />
 
       {/* Menu Bar with real Apple SVG */}
-      <div className="h-7 w-full bg-black/40 backdrop-blur-md border-b border-white/10 flex items-center px-4 justify-between text-[12px] font-[-apple-system,BlinkMacSystemFont,sans-serif] tracking-normal text-white z-20 shadow-sm relative">
-        <div className="flex items-center gap-4">
-          <svg viewBox="0 0 30 30" fill="currentColor" className="w-3.5 h-3.5">
+      <div className="h-7 w-full bg-black/40 backdrop-blur-md border-b border-white/10 flex items-center px-2 md:px-4 justify-between text-[11px] md:text-[12px] font-[-apple-system,BlinkMacSystemFont,sans-serif] tracking-normal text-white z-20 shadow-sm relative">
+        <div className="flex items-center gap-2 md:gap-4">
+          <svg viewBox="0 0 30 30" fill="currentColor" className="w-3 h-3 md:w-3.5 md:h-3.5">
             <path d="M25.565,9.785c-0.123,0.077-3.051,1.702-3.051,5.305c0.138,4.109,3.695,5.55,3.756,5.55 c-0.061,0.077-0.537,1.963-1.947,3.94C23.204,26.283,21.962,28,20.076,28c-1.794,0-2.438-1.135-4.508-1.135 c-2.223,0-2.852,1.135-4.554,1.135c-1.886,0-3.22-1.809-4.4-3.496c-1.533-2.208-2.836-5.673-2.882-9 c-0.031-1.763,0.307-3.496,1.165-4.968c1.211-2.055,3.373-3.45,5.734-3.496c1.809-0.061,3.419,1.242,4.523,1.242 c1.058,0,3.036-1.242,5.274-1.242C21.394,7.041,23.97,7.332,25.565,9.785z M15.001,6.688c-0.322-1.61,0.567-3.22,1.395-4.247 c1.058-1.242,2.729-2.085,4.17-2.085c0.092,1.61-0.491,3.189-1.533,4.339C18.098,5.937,16.488,6.872,15.001,6.688z"></path>
           </svg>
           <span className="font-bold">Mail</span>
@@ -119,48 +119,48 @@ export function MacOsAnimation() {
           <span className="hidden sm:inline font-medium">Édition</span>
           <span className="hidden sm:inline font-medium">Présentation</span>
         </div>
-        <div className="flex items-center gap-4 font-medium">
+        <div className="flex items-center gap-2 md:gap-4 font-medium">
           <div className="relative flex items-center justify-center px-1">
-            <span className="font-black tracking-tighter text-[15px] leading-none mb-[2px]">e</span>
+            <span className="font-black tracking-tighter text-[13px] md:text-[15px] leading-none mb-[2px]">e</span>
           </div>
-          <span>100%</span>
+          <span className="hidden sm:inline">100%</span>
           <span>Mar. 14:30</span>
         </div>
       </div>
 
       {/* Workspace */}
-      <div className="relative w-full h-full p-6 overflow-hidden flex flex-col items-center z-10 font-[-apple-system,BlinkMacSystemFont,sans-serif]">
+      <div className="relative w-full h-full p-2 sm:p-6 overflow-hidden flex flex-col items-center z-10 font-[-apple-system,BlinkMacSystemFont,sans-serif]">
         
         <motion.div 
           animate={{ 
-            scale: shouldZoom ? 1.05 : 1,
-            y: shouldZoom ? 15 : 0
+            scale: shouldZoom ? 1.02 : 1,
+            y: shouldZoom ? 5 : 0
           }}
           transition={{ duration: 1.2, ease: "easeInOut" }}
-          className="absolute top-16 left-0 right-0 mx-auto w-[92%] lg:w-[700px] bottom-8 lg:bottom-12 bg-[#F5F5F7]/95 backdrop-blur-xl rounded-xl shadow-2xl border border-black/10 flex flex-col overflow-hidden opacity-95 z-10"
+          className="absolute top-10 md:top-16 left-0 right-0 mx-auto w-[92%] md:w-[85%] lg:w-[700px] bottom-6 md:bottom-8 lg:bottom-12 bg-[#F5F5F7]/95 backdrop-blur-xl rounded-xl shadow-2xl border border-black/10 flex flex-col overflow-hidden opacity-95 z-10"
         >
-          <div className="h-12 border-b border-gray-300/50 flex items-center px-4 gap-2 relative bg-white/50">
-            <div className="flex gap-2 z-10">
-              <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]" />
-              <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]" />
-              <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]" />
+          <div className="h-10 md:h-12 border-b border-gray-300/50 flex items-center px-3 md:px-4 gap-2 relative bg-white/50">
+            <div className="flex gap-1.5 md:gap-2 z-10">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]" />
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]" />
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]" />
             </div>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="h-7 w-1/3 bg-black/5 rounded-md border border-black/5 flex items-center justify-center">
-                <span className="text-[11px] text-gray-500 font-medium">Nouveau message</span>
+              <div className="h-6 md:h-7 w-1/2 md:w-1/3 bg-black/5 rounded-md border border-black/5 flex items-center justify-center">
+                <span className="text-[10px] md:text-[11px] text-gray-500 font-medium">Nouveau message</span>
               </div>
             </div>
           </div>
           
-          <div className="p-6 flex-1 flex flex-col">
-            <div className="text-sm font-medium text-gray-400 mb-2 border-b border-gray-200 pb-2">
-              <span className="text-gray-500 w-12 inline-block">À :</span> equipe@entreprise.com
+          <div className="p-4 md:p-6 flex-1 flex flex-col overflow-hidden">
+            <div className="text-xs md:text-sm font-medium text-gray-400 mb-2 border-b border-gray-200 pb-2">
+              <span className="text-gray-500 w-10 md:w-12 inline-block">À :</span> equipe@entreprise.com
             </div>
-            <div className="text-sm font-medium text-gray-400 mb-6 border-b border-gray-200 pb-2">
-              <span className="text-gray-500 w-12 inline-block">Objet :</span> Retard ce matin
+            <div className="text-xs md:text-sm font-medium text-gray-400 mb-4 md:mb-6 border-b border-gray-200 pb-2">
+              <span className="text-gray-500 w-10 md:w-12 inline-block">Objet :</span> Retard ce matin
             </div>
             
-            <div className="relative text-[15px] leading-relaxed text-gray-800">
+            <div className="relative text-[14px] md:text-[15px] leading-relaxed text-gray-800">
               Bonjour à tous,<br/><br/>
               
               <div className="relative inline-grid text-left max-w-full">
@@ -223,13 +223,13 @@ export function MacOsAnimation() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9, y: 10 }}
                         transition={{ duration: 0.4, type: "spring", bounce: 0.4 }}
-                        className="absolute left-1/2 -translate-x-1/2 -bottom-16 bg-black/80 backdrop-blur-xl text-white/90 text-sm font-medium p-3 rounded-xl shadow-2xl flex items-center gap-4 whitespace-nowrap z-50 border border-white/20"
+                        className="absolute left-1/2 -translate-x-1/2 top-[110%] md:top-auto md:-bottom-16 bg-black/80 backdrop-blur-xl text-white/90 text-xs md:text-sm font-medium p-2 md:p-3 rounded-xl shadow-2xl flex items-center gap-3 md:gap-4 whitespace-nowrap z-50 border border-white/20"
                       >
-                        <div className="flex items-center gap-2 opacity-90 pl-1">
-                          <span className="text-blue-400 text-xs font-bold">⌃</span>
+                        <div className="flex items-center gap-1.5 md:gap-2 opacity-90 pl-1">
+                          <Command className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-400" />
                           <span className="tracking-wide">Correction IA</span>
                         </div>
-                        <div className="flex gap-2 items-center">
+                        <div className="flex gap-1.5 md:gap-2 items-center">
                           <motion.span
                             initial={{ y: 0, scale: 1, boxShadow: "0px 3px 0px #a1a1aa" }}
                             animate={{ 
@@ -242,7 +242,7 @@ export function MacOsAnimation() {
                               ]
                             }}
                             transition={{ duration: 0.25, delay: 0.5, times: [0, 0.5, 1], ease: "easeInOut" }}
-                            className="bg-white text-gray-800 border border-gray-200 rounded-[6px] px-2 py-1 text-[14px] font-sans flex items-center justify-center min-w-[32px] will-change-transform"
+                            className="bg-white text-gray-800 border border-gray-200 rounded-[4px] md:rounded-[6px] px-1.5 md:px-2 py-0.5 md:py-1 text-[12px] md:text-[14px] font-sans font-semibold tracking-wide flex items-center justify-center min-w-[32px] md:min-w-[40px] will-change-transform"
                           >
                             ⌃
                           </motion.span>
@@ -258,7 +258,7 @@ export function MacOsAnimation() {
                               ]
                             }}
                             transition={{ duration: 0.25, delay: 0.55, times: [0, 0.5, 1], ease: "easeInOut" }}
-                            className="bg-white text-gray-800 border border-gray-200 rounded-[6px] px-3 py-1 text-[13px] font-sans font-semibold tracking-wide flex items-center justify-center min-w-[64px] will-change-transform"
+                            className="bg-white text-gray-800 border border-gray-200 rounded-[4px] md:rounded-[6px] px-2 md:px-3 py-0.5 md:py-1 text-[11px] md:text-[13px] font-sans font-semibold tracking-wide flex items-center justify-center min-w-[48px] md:min-w-[64px] will-change-transform"
                           >
                             Espace
                           </motion.span>
