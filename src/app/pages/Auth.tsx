@@ -7,22 +7,38 @@ const API = "https://exact-api.ramydjebbi.workers.dev";
 export function Auth() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!isLogin && password !== confirmPassword) {
+      setError("Les mots de passe ne correspondent pas");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+      const body: Record<string, string> = {
+        email: email.toLowerCase().trim(),
+        password,
+      };
+      if (!isLogin && name.trim()) {
+        body.name = name.trim();
+      }
+
       const res = await fetch(`${API}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.toLowerCase().trim(), password }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -52,7 +68,6 @@ export function Auth() {
             return;
           }
         } catch {
-          // Checkout failed but account is created — go to dashboard
           navigate("/dashboard");
           return;
         }
@@ -63,6 +78,13 @@ export function Auth() {
       setError(`Erreur reseau: ${err instanceof Error ? err.message : "connexion impossible"}`);
     }
     setLoading(false);
+  };
+
+  const switchMode = () => {
+    setIsLogin(!isLogin);
+    setError("");
+    setConfirmPassword("");
+    setName("");
   };
 
   return (
@@ -80,7 +102,9 @@ export function Auth() {
           {isLogin ? "Connexion" : "Inscription"}
         </h1>
         <p className="font-secondary text-sm md:text-base text-gray-600 mb-8">
-          {isLogin ? "Accedez a votre compte et gerez votre licence Exact." : "Creez votre compte pour obtenir votre licence Exact."}
+          {isLogin
+            ? "Accedez a votre compte et gerez votre licence Exact."
+            : "Creez votre compte pour obtenir votre licence Exact."}
         </p>
 
         {error && (
@@ -88,28 +112,85 @@ export function Auth() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5 flex flex-col">
+
+          {!isLogin && (
+            <div className="space-y-2">
+              <label className="font-black uppercase text-xs tracking-wider">Nom complet</label>
+              <input
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-[#F2F0EB] border-[2px] border-black px-4 py-3 font-secondary focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="font-black uppercase text-xs tracking-wider">Adresse email</label>
-            <input type="email" placeholder="john@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#F2F0EB] border-[2px] border-black px-4 py-3 font-secondary focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" required />
+            <input
+              type="email"
+              placeholder="john@exemple.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-[#F2F0EB] border-[2px] border-black px-4 py-3 font-secondary focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+              required
+            />
           </div>
+
           <div className="space-y-2">
             <label className="font-black uppercase text-xs tracking-wider">Mot de passe</label>
-            <input type="password" placeholder="Min. 8 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8}
-              className="w-full bg-[#F2F0EB] border-[2px] border-black px-4 py-3 font-secondary focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all" required />
+            <input
+              type="password"
+              placeholder="Min. 8 caracteres"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={8}
+              className="w-full bg-[#F2F0EB] border-[2px] border-black px-4 py-3 font-secondary focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+              required
+            />
           </div>
-          <button type="submit" disabled={loading}
-            className="w-full bg-[#00FF00] text-black border-[2px] border-black px-6 py-4 mt-4 font-black uppercase text-sm hover:bg-[#FFD600] transition-colors flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none group disabled:opacity-50">
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : isLogin ? <><LogIn className="w-5 h-5" /> Se connecter</> : <><UserPlus className="w-5 h-5" /> Creer mon compte</>}
+
+          {!isLogin && (
+            <div className="space-y-2">
+              <label className="font-black uppercase text-xs tracking-wider">Confirmer le mot de passe</label>
+              <input
+                type="password"
+                placeholder="Retapez votre mot de passe"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={8}
+                className="w-full bg-[#F2F0EB] border-[2px] border-black px-4 py-3 font-secondary focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+                required
+              />
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#00FF00] text-black border-[2px] border-black px-6 py-4 mt-4 font-black uppercase text-sm hover:bg-[#FFD600] transition-colors flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none group disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isLogin ? (
+              <><LogIn className="w-5 h-5" /> Se connecter</>
+            ) : (
+              <><UserPlus className="w-5 h-5" /> Creer mon compte</>
+            )}
             {!loading && <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />}
           </button>
         </form>
 
         <div className="mt-8 pt-6 border-t-[2px] border-black text-center">
-          <p className="font-secondary text-sm text-gray-600 mb-3">{isLogin ? "Pas de compte ?" : "Deja un compte ?"}</p>
-          <button onClick={() => { setIsLogin(!isLogin); setError(""); }}
-            className="text-black font-black uppercase text-xs tracking-wider hover:underline underline-offset-4 decoration-2">
-            {isLogin ? "S'inscrire" : "Se connecter"}
+          <p className="font-secondary text-sm text-gray-600 mb-3">
+            {isLogin ? "Pas de compte ?" : "Deja un compte ?"}
+          </p>
+          <button
+            onClick={switchMode}
+            className="text-black font-black uppercase text-xs tracking-wider hover:underline underline-offset-4 decoration-2"
+          >
+            {isLogin ? "S'inscrire maintenant" : "Se connecter"}
           </button>
         </div>
       </div>
