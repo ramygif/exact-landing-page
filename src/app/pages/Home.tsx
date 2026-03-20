@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Command, Sparkles, Zap, CheckCircle, TextCursor, ArrowRight, Loader2, Video, Bot, Layers } from "lucide-react";
 import { Link } from "react-router";
-import posthog from "posthog-js";
+import { posthog, emailDomain } from "../utils/posthog";
 import { MacOsAnimation } from "../components/MacOsAnimation";
 import { reportError } from "../utils/error-tracker";
 
@@ -35,6 +35,7 @@ export function Home() {
 
   const scrollToCTA = () => {
     ctaRef.current?.scrollIntoView({ behavior: 'smooth' });
+    posthog.capture("cta_clicked", { button_name: "rejoindre_waitlist", section: "navbar" });
   };
 
   const handleSubscribe = async (e: React.FormEvent, email: string) => {
@@ -53,13 +54,13 @@ export function Home() {
 
     if (result.ok) {
       setIsSubscribed(true);
-      posthog.capture("waitlist_signup", { email });
-      posthog.identify(email, { email });
+      posthog.capture("waitlist_email_submitted", { email_domain: emailDomain(email), source: email === heroEmail ? "hero" : "cta" });
     } else {
       const msg = result.message || "Une erreur est survenue.";
       setError(msg);
+      posthog.capture("waitlist_email_failed", { error_type: msg, source: email === heroEmail ? "hero" : "cta" });
       const formLocation = email === heroEmail ? "Hero" : "CTA";
-      reportError(`WaitList-${formLocation}`, "submit_email", msg, `email=${email}`);
+      reportError(`WaitList-${formLocation}`, "submit_email", msg);
     }
   };
 
