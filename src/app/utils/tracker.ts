@@ -29,18 +29,35 @@ export const LABELS = {
   // Success
   SUCCESS_DOWNLOAD: { component: "Success", action: "clic_telecharger" },
   SUCCESS_DASHBOARD: { component: "Success", action: "clic_espace_client" },
+
+  // Waiting list (site public main)
+  WL_HERO_FORM: { component: "WaitList-Hero", action: "submit_email" },
+  WL_CTA_FORM: { component: "WaitList-CTA", action: "submit_email" },
+  WL_CONSENT: { component: "WaitList", action: "toggle_consent" },
 } as const;
 
 type Label = typeof LABELS[keyof typeof LABELS];
 
+// Detect which site we're on
+function detectSite(): string {
+  const host = window.location.hostname;
+  if (host === 'getexact.app') return 'Waiting-List';
+  if (host.includes('admin-dashboard')) return 'Admin';
+  if (host.includes('exact-landing-page.pages.dev')) return 'LP-Dev';
+  if (host === 'localhost') return 'Localhost';
+  return host;
+}
+
 export function reportClientError(label: Label, errorMessage: string, context?: string) {
   const page = window.location.pathname;
   const email = localStorage.getItem("exact_email") || undefined;
+  const site = detectSite();
 
   fetch(`${API}/api/client-error`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      site,
       component: label.component,
       action: label.action,
       error_message: errorMessage,
