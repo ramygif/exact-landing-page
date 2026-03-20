@@ -39,6 +39,7 @@ interface LogEntry {
   app_version: string | null;
   correction_mode: string | null;
   text_length: number | null;
+  source: string | null;
 }
 
 export function AdminDashboard() {
@@ -55,6 +56,7 @@ export function AdminDashboard() {
   const [logLevel, setLogLevel] = useState("");
   const [logEndpoint, setLogEndpoint] = useState("");
   const [logUserId, setLogUserId] = useState("");
+  const [logSource, setLogSource] = useState("");
   const [logLimit, setLogLimit] = useState(30);
   const [logOffset, setLogOffset] = useState(0);
 
@@ -102,6 +104,7 @@ export function AdminDashboard() {
     if (logLevel) params.set("level", logLevel);
     if (logEndpoint) params.set("endpoint", logEndpoint);
     if (logUserId) params.set("user_id", logUserId);
+    if (logSource) params.set("source", logSource);
 
     try {
       const res = await fetch(`${API}/api/admin/logs?${params}`, { headers });
@@ -123,7 +126,7 @@ export function AdminDashboard() {
 
   useEffect(() => {
     if (authenticated) fetchLogs();
-  }, [logLevel, logEndpoint, logUserId, logLimit, logOffset]);
+  }, [logLevel, logEndpoint, logUserId, logSource, logLimit, logOffset]);
 
   if (!authenticated) {
     return (
@@ -258,6 +261,12 @@ export function AdminDashboard() {
             </select>
             <input placeholder="Endpoint" value={logEndpoint} onChange={e => { setLogEndpoint(e.target.value); setLogOffset(0); }} style={styles.filterInput} />
             <input placeholder="User ID" value={logUserId} onChange={e => { setLogUserId(e.target.value); setLogOffset(0); }} style={styles.filterInput} />
+            <select value={logSource} onChange={e => { setLogSource(e.target.value); setLogOffset(0); }} style={styles.select}>
+              <option value="">Toutes sources</option>
+              <option value="app">App macOS</option>
+              <option value="web">Site web</option>
+              <option value="api">API directe</option>
+            </select>
             <span style={styles.muted}>{logsTotal} resultats</span>
           </div>
 
@@ -267,6 +276,7 @@ export function AdminDashboard() {
               <thead>
                 <tr>
                   <th style={styles.th}>Time</th>
+                  <th style={styles.th}>Source</th>
                   <th style={styles.th}>Level</th>
                   <th style={styles.th}>Method</th>
                   <th style={styles.th}>Endpoint</th>
@@ -280,6 +290,11 @@ export function AdminDashboard() {
                 {logs.map(l => (
                   <tr key={l.id} style={l.level === "error" ? styles.rowError : l.level === "warn" ? styles.rowWarn : {}}>
                     <td style={styles.td}>{l.timestamp.slice(11, 19)}</td>
+                    <td style={styles.td}>
+                      <span style={{ ...styles.levelBadge, background: l.source === "app" ? "#7c3aed" : l.source === "web" ? "#2563eb" : "#525252" }}>
+                        {l.source || "?"}
+                      </span>
+                    </td>
                     <td style={styles.td}>
                       <span style={{ ...styles.levelBadge, background: l.level === "error" ? "#dc2626" : l.level === "warn" ? "#d97706" : "#16a34a" }}>
                         {l.level}
