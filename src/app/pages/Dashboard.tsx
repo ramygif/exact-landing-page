@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { LogOut, User, Shield, Download, CheckCircle, Zap, CreditCard, Loader2, XCircle } from "lucide-react";
+import { reportClientError, LABELS } from "../utils/tracker";
 
 const API = "https://exact-api.ramydjebbi.workers.dev";
 
@@ -19,7 +20,9 @@ export function Dashboard() {
       if (res.status === 401) { logout(); return; }
       const data = await res.json();
       setUser(data.user);
-    } catch {}
+    } catch (err) {
+      reportClientError({ component: "Dashboard", action: "fetch_user" }, err instanceof Error ? err.message : "erreur");
+    }
     setLoading(false);
   };
 
@@ -27,12 +30,26 @@ export function Dashboard() {
 
   const openPortal = async () => {
     setPortalLoading(true);
-    try { const res = await fetch(`${API}/api/stripe/portal`, { headers: { Authorization: `Bearer ${token}` } }); const data = await res.json(); if (data.url) window.location.href = data.url; } catch {}
+    try {
+      const res = await fetch(`${API}/api/stripe/portal`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else reportClientError(LABELS.DASH_PORTAL, "URL portail absente");
+    } catch (err) {
+      reportClientError(LABELS.DASH_PORTAL, err instanceof Error ? err.message : "erreur");
+    }
     setPortalLoading(false);
   };
 
   const subscribe = async () => {
-    try { const res = await fetch(`${API}/api/stripe/checkout`, { method: "POST", headers: { Authorization: `Bearer ${token}` } }); const data = await res.json(); if (data.url) window.location.href = data.url; } catch {}
+    try {
+      const res = await fetch(`${API}/api/stripe/checkout`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else reportClientError(LABELS.DASH_SUBSCRIBE, "URL checkout absente");
+    } catch (err) {
+      reportClientError(LABELS.DASH_SUBSCRIBE, err instanceof Error ? err.message : "erreur");
+    }
   };
 
   if (loading) return <div className="min-h-screen bg-[#F2F0EB] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>;

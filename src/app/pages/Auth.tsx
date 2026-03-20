@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowRight, UserPlus, LogIn, Loader2 } from "lucide-react";
+import { reportClientError, LABELS } from "../utils/tracker";
 
 const API = "https://exact-api.ramydjebbi.workers.dev";
 
@@ -45,6 +46,7 @@ export function Auth() {
         let msg = "Erreur de connexion";
         try { const d = await res.json(); msg = d.error || msg; } catch {}
         setError(msg);
+        reportClientError(isLogin ? LABELS.AUTH_LOGIN_BTN : LABELS.AUTH_REGISTER_BTN, msg, `email=${email}`);
         setLoading(false);
         return;
       }
@@ -75,7 +77,9 @@ export function Auth() {
 
       navigate("/dashboard");
     } catch (err) {
-      setError(`Erreur reseau: ${err instanceof Error ? err.message : "connexion impossible"}`);
+      const msg = err instanceof Error ? err.message : "connexion impossible";
+      setError(`Erreur reseau: ${msg}`);
+      reportClientError(isLogin ? LABELS.AUTH_LOGIN_BTN : LABELS.AUTH_REGISTER_BTN, `Erreur reseau: ${msg}`);
     }
     setLoading(false);
   };

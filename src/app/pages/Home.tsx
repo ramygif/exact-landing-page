@@ -3,6 +3,7 @@ import { Command, Sparkles, Zap, CheckCircle, TextCursor, Download, User, Mic, B
 import { useNavigate } from "react-router";
 import posthog from "posthog-js";
 import { MacOsAnimation } from "../components/MacOsAnimation";
+import { reportClientError, LABELS } from "../utils/tracker";
 
 const API = "https://exact-api.ramydjebbi.workers.dev";
 
@@ -52,7 +53,10 @@ export function Home() {
       const res = await fetch(`${API}/api/stripe/checkout`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.url) { posthog.capture("checkout_redirect"); window.location.href = data.url; }
-    } catch { navigate("/auth"); }
+    } catch (err) {
+      reportClientError(LABELS.HOME_PRICING_COMMENCER, err instanceof Error ? err.message : "checkout echoue");
+      navigate("/auth");
+    }
   };
 
   return (

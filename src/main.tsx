@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import posthog from "posthog-js";
 import App from "./app/App.tsx";
 import "./styles/index.css";
+import { installGlobalErrorHandler } from "./app/utils/tracker";
 
 posthog.init("phc_R4nkf2hrG0UlcEctqFZfJwjJwDuTrqxvTkhqqjt7HBq", {
   api_host: "https://eu.i.posthog.com",
@@ -19,4 +20,5 @@ posthog.init("phc_R4nkf2hrG0UlcEctqFZfJwjJwDuTrqxvTkhqqjt7HBq", {
   enable_recording_console_log: true,
 });
 
+installGlobalErrorHandler();
 createRoot(document.getElementById("root")!).render(<App />);
