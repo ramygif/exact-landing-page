@@ -3,6 +3,7 @@ import { Command, Sparkles, Zap, CheckCircle, TextCursor, ArrowRight, Loader2, V
 import { Link } from "react-router";
 import posthog from "posthog-js";
 import { MacOsAnimation } from "../components/MacOsAnimation";
+import { reportError } from "../utils/error-tracker";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -55,7 +56,10 @@ export function Home() {
       posthog.capture("waitlist_signup", { email });
       posthog.identify(email, { email });
     } else {
-      setError(result.message || "Une erreur est survenue.");
+      const msg = result.message || "Une erreur est survenue.";
+      setError(msg);
+      const formLocation = email === heroEmail ? "Hero" : "CTA";
+      reportError(`WaitList-${formLocation}`, "submit_email", msg, `email=${email}`);
     }
   };
 
