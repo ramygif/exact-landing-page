@@ -6,6 +6,7 @@ import { Success } from "./pages/Success";
 import { Confidentialite } from "./pages/Confidentialite";
 import { CGU } from "./pages/CGU";
 import { Roadmap } from "./pages/Roadmap";
+import { AdminDashboard } from "./pages/AdminDashboard";
 
 export const router = createBrowserRouter([
   { path: "/", Component: Home },
@@ -17,4 +18,5 @@ export const router = createBrowserRouter([
   { path: "/confidentialite", Component: Confidentialite },
   { path: "/cgu", Component: CGU },
   { path: "/roadmap", Component: Roadmap },
+  { path: "/admin/dashboard", Component: AdminDashboard },
 ]);
