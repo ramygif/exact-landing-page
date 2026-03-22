@@ -3,7 +3,29 @@ import posthog from "posthog-js";
 const POSTHOG_KEY = "phc_R4nkf2hrG0UlcEctqFZfJwjJwDuTrqxvTkhqqjt7HBq";
 const POSTHOG_HOST = "https://eu.i.posthog.com";
 
+// Check if tracking should be disabled (internal traffic)
+function isInternalTraffic(): boolean {
+  // ?disable_tracking in URL → set flag and disable
+  if (window.location.search.includes("disable_tracking")) {
+    localStorage.setItem("exact_internal_user", "true");
+    return true;
+  }
+  // ?enable_tracking in URL → remove flag and enable
+  if (window.location.search.includes("enable_tracking")) {
+    localStorage.removeItem("exact_internal_user");
+    return false;
+  }
+  // Flag already set
+  return localStorage.getItem("exact_internal_user") === "true";
+}
+
 export function initPostHog() {
+  // Skip PostHog entirely for internal traffic
+  if (isInternalTraffic()) {
+    console.log("[PostHog] Internal traffic — tracking disabled");
+    return;
+  }
+
   // Check cookie consent
   const consent = localStorage.getItem("exact_cookie_consent");
 
