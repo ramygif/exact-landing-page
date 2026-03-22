@@ -46,6 +46,17 @@ export function initPostHog() {
   // If already accepted, opt in
   if (consent === "accepted") posthog.opt_in_capturing();
   if (consent === "refused") posthog.opt_out_capturing();
+
+  // ?mark_internal → tag this user as internal in PostHog (for dashboard filters)
+  // Use this BEFORE ?disable_tracking if you want to retroactively filter old data
+  if (window.location.search.includes("mark_internal")) {
+    posthog.identify("ramy-admin", { exact_internal_user: true, role: "admin" });
+  }
+
+  // Filter localhost traffic via super property
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    posthog.register({ is_localhost: true });
+  }
 }
 
 // Extract domain only from email (RGPD — never send full email)
